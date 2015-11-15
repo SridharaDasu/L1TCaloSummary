@@ -5,10 +5,10 @@
 // 
 /**\class L1TCaloSummary L1TCaloSummary.cc L1Trigger/L1TCaloSummary/plugins/L1TCaloSummary.cc
 
- Description: [one line class summary]
+   Description: The package L1Trigger/L1TCaloSummary is prepared for monitoring the CMS Layer-1 Calorimeter Trigger.
 
- Implementation:
-     [Notes on implementation]
+   Implementation:
+   It prepares region objects and puts them in the event
 */
 //
 // Original Author:  Sridhara Dasu
@@ -29,35 +29,72 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
+#include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
+
+#include "L1Trigger/L1TCaloLayer1/src/UCTLayer1.hh"
+#include "L1Trigger/L1TCaloLayer1/src/UCTCrate.hh"
+#include "L1Trigger/L1TCaloLayer1/src/UCTCard.hh"
+#include "L1Trigger/L1TCaloLayer1/src/UCTRegion.hh"
+#include "L1Trigger/L1TCaloLayer1/src/UCTTower.hh"
+#include "L1Trigger/L1TCaloLayer1/src/UCTGeometry.hh"
+
+#include "L1Trigger/L1TCaloSummary/src/UCTSummaryCard.hh"
+#include "L1Trigger/L1TCaloSummary/src/UCTRegionExtended.hh"
+#include "L1Trigger/L1TCaloSummary/src/UCTGeometryExtended.hh"
+
+#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
+
+#include "DataFormats/L1Trigger/interface/L1EmParticle.h"
+#include "DataFormats/L1Trigger/interface/L1EmParticleFwd.h"
+#include "DataFormats/L1Trigger/interface/L1JetParticle.h"
+#include "DataFormats/L1Trigger/interface/L1JetParticleFwd.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticleFwd.h"
+
+using namespace l1extra;
+using namespace std;
 
 //
 // class declaration
 //
 
 class L1TCaloSummary : public edm::EDProducer {
-   public:
-      explicit L1TCaloSummary(const edm::ParameterSet&);
-      ~L1TCaloSummary();
+public:
+  explicit L1TCaloSummary(const edm::ParameterSet&);
+  ~L1TCaloSummary();
 
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-   private:
-      virtual void beginJob() override;
-      virtual void produce(edm::Event&, const edm::EventSetup&) override;
-      virtual void endJob() override;
+private:
+  virtual void beginJob() override;
+  virtual void produce(edm::Event&, const edm::EventSetup&) override;
+  virtual void endJob() override;
       
-      //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
-      //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
-      //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
-      //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
+  //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
+  //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
+  //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
 
-      // ----------member data ---------------------------
+  void print();
+
+  // ----------member data ---------------------------
+
+  edm::EDGetTokenT<EcalTrigPrimDigiCollection> ecalTPSource;
+  std::string ecalTPSourceLabel;
+  edm::EDGetTokenT<HcalTrigPrimDigiCollection> hcalTPSource;
+  std::string hcalTPSourceLabel;
+
+  bool verbose;
+
+  UCTLayer1 *layer1;
+  UCTSummaryCard *summaryCard;
+  
 };
 
 //
 // constants, enums and typedefs
 //
-
 
 //
 // static data member definitions
@@ -66,31 +103,31 @@ class L1TCaloSummary : public edm::EDProducer {
 //
 // constructors and destructor
 //
-L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig)
+L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
+  ecalTPSource(consumes<EcalTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("ecalTPSource"))),
+  ecalTPSourceLabel(iConfig.getParameter<edm::InputTag>("ecalTPSource").label()),
+  hcalTPSource(consumes<HcalTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("hcalTPSource"))),
+  hcalTPSourceLabel(iConfig.getParameter<edm::InputTag>("hcalTPSource").label()),
+  verbose(iConfig.getParameter<bool>("verbose")) 
 {
-   //register your products
-/* Examples
-   produces<ExampleData2>();
-
-   //if do put with a label
-   produces<ExampleData2>("label");
- 
-   //if you want to put into the Run
-   produces<ExampleData2,InRun>();
-*/
-   //now do what ever other initialization is needed
-  
+  produces<L1CaloRegionCollection>();
+  produces< L1EmParticleCollection >( "Isolated" ) ;
+  produces< L1EmParticleCollection >( "NonIsolated" ) ;
+  produces< L1JetParticleCollection >( "Central" ) ;
+  produces< L1JetParticleCollection >( "Forward" ) ;
+  produces< L1JetParticleCollection >( "Tau" ) ;
+  produces< L1JetParticleCollection >( "IsoTau" ) ;
+  produces< L1EtMissParticleCollection >( "MET" ) ;
+  produces< L1EtMissParticleCollection >( "MHT" ) ;
+  layer1 = new UCTLayer1;
+  summaryCard = new UCTSummaryCard(layer1);
 }
 
 
-L1TCaloSummary::~L1TCaloSummary()
-{
- 
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
-
+L1TCaloSummary::~L1TCaloSummary() {
+  if(layer1 != 0) delete layer1;
+  if(summaryCard != 0) delete summaryCard;
 }
-
 
 //
 // member functions
@@ -100,24 +137,133 @@ L1TCaloSummary::~L1TCaloSummary()
 void
 L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-   using namespace edm;
-/* This is an event example
-   //Read 'ExampleData' from the Event
-   Handle<ExampleData> pIn;
-   iEvent.getByLabel("example",pIn);
+  using namespace edm;
 
-   //Use the ExampleData to create an ExampleData2 which 
-   // is put into the Event
-   std::unique_ptr<ExampleData2> pOut(new ExampleData2(*pIn));
-   iEvent.put(std::move(pOut));
-*/
+  edm::Handle<EcalTrigPrimDigiCollection> ecalTPs;
+  iEvent.getByToken(ecalTPSource, ecalTPs);
+  edm::Handle<HcalTrigPrimDigiCollection> hcalTPs;
+  iEvent.getByToken(hcalTPSource, hcalTPs);
 
-/* this is an EventSetup example
-   //Read SetupData from the SetupRecord in the EventSetup
-   ESHandle<SetupData> pSetup;
-   iSetup.get<SetupRecord>().get(pSetup);
-*/
+  std::auto_ptr<L1CaloRegionCollection> regions(new L1CaloRegionCollection);
+  std::auto_ptr<L1EmParticleCollection> iEGCands(new L1EmParticleCollection);
+  std::auto_ptr<L1EmParticleCollection> nEGCands(new L1EmParticleCollection);
+  std::auto_ptr<L1JetParticleCollection> iTauCands(new L1JetParticleCollection);
+  std::auto_ptr<L1JetParticleCollection> nTauCands(new L1JetParticleCollection);
+  std::auto_ptr<L1JetParticleCollection> cJetCands(new L1JetParticleCollection);
+  std::auto_ptr<L1JetParticleCollection> fJetCands(new L1JetParticleCollection);
+  std::auto_ptr<L1EtMissParticleCollection> met(new L1EtMissParticleCollection);
+  std::auto_ptr<L1EtMissParticleCollection> mht(new L1EtMissParticleCollection);
+
+  uint32_t expectedTotalET = 0;
+
+  if(!layer1->clearEvent()) {
+    std::cerr << "UCT: Failed to clear event" << std::endl;
+    exit(1);
+  }
+
+  for ( const auto& ecalTp : *ecalTPs ) {
+    int caloEta = ecalTp.id().ieta();
+    int caloPhi = ecalTp.id().iphi();
+    int et = ecalTp.compressedEt();
+    bool fgVeto = ecalTp.fineGrain();
+    if(et != 0) {
+      UCTTowerIndex t = UCTTowerIndex(caloEta, caloPhi);
+      if(!layer1->setECALData(t,fgVeto,et)) {
+	std::cerr << "UCT: Failed loading an ECAL tower" << std::endl;
+	return;
+      }
+      expectedTotalET += et;
+    }
+  }
+
+  for ( const auto& hcalTp : *hcalTPs ) {
+    int caloEta = hcalTp.id().ieta();
+    int caloPhi = hcalTp.id().iphi();
+    int et = hcalTp.SOI_compressedEt();
+    bool fg = hcalTp.SOI_fineGrain();
+    if(et != 0) {
+      UCTTowerIndex t = UCTTowerIndex(caloEta, caloPhi);
+      uint32_t featureBits = 0;
+      if(fg) featureBits = 0x1F; // Set all five feature bits for the moment - they are not defined in HW / FW yet!
+      if(!layer1->setHCALData(t, et, featureBits)) {
+	std::cerr << "UCT: Failed loading an HCAL tower" << std::endl;
+	return;
+
+      }
+      expectedTotalET += et;
+    }
+  }
+  if(!layer1->process()) {
+    std::cerr << "UCT: Failed to process layer 1" << std::endl;
+    exit(1);
+  }
+
+  // Crude check if total ET is approximately OK!
+  // We can't expect exact match as there is region level saturation to 10-bits
+  // 1% is good enough
+  int diff = abs(layer1->et() - expectedTotalET);
+  if(verbose && diff > 0.01 * expectedTotalET ) {
+    print();
+    std::cout << "Expected " 
+	      << std::showbase << std::internal << std::setfill('0') << std::setw(10) << std::hex
+	      << expectedTotalET << std::dec << std::endl;
+  }
  
+  vector<UCTCrate*> crates = layer1->getCrates();
+  for(uint32_t crt = 0; crt < crates.size(); crt++) {
+    vector<UCTCard*> cards = crates[crt]->getCards();
+    for(uint32_t crd = 0; crd < cards.size(); crd++) {
+      vector<UCTRegion*> regions = cards[crd]->getRegions();
+      for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
+      }
+    }
+  }  
+
+  iEvent.put(regions);
+
+  if(!summaryCard->process()) {
+    std::cerr << "UCT: Failed to process summary card" << std::endl;
+    exit(1);      
+  }
+
+  iEvent.put(iEGCands, "Isolated");
+  iEvent.put(nEGCands, "NonIsolated");
+  iEvent.put(iTauCands, "IsoTau");
+  iEvent.put(nTauCands, "Tau");
+  iEvent.put(cJetCands, "Central");
+  iEvent.put(fJetCands, "Forward");
+  iEvent.put(met, "MET");
+  iEvent.put(mht, "MHT");
+
+}
+
+void L1TCaloSummary::print() {
+  vector<UCTCrate*> crates = layer1->getCrates();
+  for(uint32_t crt = 0; crt < crates.size(); crt++) {
+    vector<UCTCard*> cards = crates[crt]->getCards();
+    for(uint32_t crd = 0; crd < cards.size(); crd++) {
+      vector<UCTRegion*> regions = cards[crd]->getRegions();
+      for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
+	if(regions[rgn]->et() > 0) {
+	  int hitEta = regions[rgn]->hitCaloEta();
+	  int hitPhi = regions[rgn]->hitCaloPhi();
+	  vector<UCTTower*> towers = regions[rgn]->getTowers();
+	  bool header = true;
+	  for(uint32_t twr = 0; twr < towers.size(); twr++) {
+	    if(towers[twr]->caloPhi() == hitPhi && towers[twr]->caloEta() == hitEta) {
+	      std::cout << "*";
+	    }
+	    towers[twr]->print(header);
+	    if(header) header = false;
+	  }
+	  regions[rgn]->print();
+	}
+      }
+      cards[crd]->print();
+    }
+    crates[crt]->print();
+  }
+  layer1->print();
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -133,34 +279,34 @@ L1TCaloSummary::endJob() {
 
 // ------------ method called when starting to processes a run  ------------
 /*
-void
-L1TCaloSummary::beginRun(edm::Run const&, edm::EventSetup const&)
-{
-}
+  void
+  L1TCaloSummary::beginRun(edm::Run const&, edm::EventSetup const&)
+  {
+  }
 */
  
 // ------------ method called when ending the processing of a run  ------------
 /*
-void
-L1TCaloSummary::endRun(edm::Run const&, edm::EventSetup const&)
-{
-}
+  void
+  L1TCaloSummary::endRun(edm::Run const&, edm::EventSetup const&)
+  {
+  }
 */
  
 // ------------ method called when starting to processes a luminosity block  ------------
 /*
-void
-L1TCaloSummary::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
+  void
+  L1TCaloSummary::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+  {
+  }
 */
  
 // ------------ method called when ending the processing of a luminosity block  ------------
 /*
-void
-L1TCaloSummary::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
-{
-}
+  void
+  L1TCaloSummary::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&)
+  {
+  }
 */
  
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------

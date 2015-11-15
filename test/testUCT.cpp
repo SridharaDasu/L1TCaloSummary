@@ -66,10 +66,8 @@ int main(int argc, char** argv) {
   else {std::cout << "Command syntax: testUCTLayer1 [nEvents]" << std::endl; return 1;}
 
   UCTLayer1 uctLayer1;
-  std::cout << "UCT: made layer1" << std::endl;
 
   UCTSummaryCard uctLayer2(&uctLayer1);
-  std::cout << "UCT: made summary card" << std::endl;
 
   // Event loop - use 1M events to test
   for(int event = 0; event < nEvents; event++) {
@@ -78,7 +76,6 @@ int main(int argc, char** argv) {
       std::cerr << "UCT: Failed to clear event" << std::endl;
       exit(1);
     }
-    std::cout << "UCT: cleared event" << std::endl;
     
     // Make an electron and put it in a random location within UCT
     
@@ -96,7 +93,6 @@ int main(int argc, char** argv) {
       std::cerr << "UCT: Failed loading an eGamma candidate" << std::endl;
       exit(1);
     }
-    std::cout << "Electron loaded" << std::endl;
     uint32_t expectedTotalET = eleET + hcalE;
     // For 30% of the cases add a non-zero neighbor tower
     if((random() % 100) > 70) {
@@ -131,7 +127,6 @@ int main(int argc, char** argv) {
 	}
       }
     }
-    std::cout << "UCT: filled layer-1 event" << std::endl;
   
     if(!uctLayer1.process()) {
       std::cerr << "UCT: Failed to process layer 1" << std::endl;
