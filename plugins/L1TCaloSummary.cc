@@ -39,11 +39,10 @@
 #include "L1Trigger/L1TCaloLayer1/src/UCTTower.hh"
 #include "L1Trigger/L1TCaloLayer1/src/UCTGeometry.hh"
 
+#include "L1Trigger/L1TCaloSummary/src/UCTObject.hh"
 #include "L1Trigger/L1TCaloSummary/src/UCTSummaryCard.hh"
 #include "L1Trigger/L1TCaloSummary/src/UCTRegionExtended.hh"
 #include "L1Trigger/L1TCaloSummary/src/UCTGeometryExtended.hh"
-
-#include "DataFormats/L1CaloTrigger/interface/L1CaloCollections.h"
 
 #include "DataFormats/L1Trigger/interface/L1EmParticle.h"
 #include "DataFormats/L1Trigger/interface/L1EmParticleFwd.h"
@@ -51,6 +50,10 @@
 #include "DataFormats/L1Trigger/interface/L1JetParticleFwd.h"
 #include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
 #include "DataFormats/L1Trigger/interface/L1EtMissParticleFwd.h"
+
+typedef std::vector<uint32_t> L1TCaloRegionCollection;
+
+#include "DataFormats/Math/interface/LorentzVector.h"
 
 using namespace l1extra;
 using namespace std;
@@ -110,7 +113,7 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   hcalTPSourceLabel(iConfig.getParameter<edm::InputTag>("hcalTPSource").label()),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
-  produces<L1CaloRegionCollection>();
+  produces< L1TCaloRegionCollection >();
   produces< L1EmParticleCollection >( "Isolated" ) ;
   produces< L1EmParticleCollection >( "NonIsolated" ) ;
   produces< L1JetParticleCollection >( "Central" ) ;
@@ -144,15 +147,15 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<HcalTrigPrimDigiCollection> hcalTPs;
   iEvent.getByToken(hcalTPSource, hcalTPs);
 
-  std::auto_ptr<L1CaloRegionCollection> regions(new L1CaloRegionCollection);
+  std::auto_ptr<L1TCaloRegionCollection> rgnCollection(new L1TCaloRegionCollection);
   std::auto_ptr<L1EmParticleCollection> iEGCands(new L1EmParticleCollection);
   std::auto_ptr<L1EmParticleCollection> nEGCands(new L1EmParticleCollection);
   std::auto_ptr<L1JetParticleCollection> iTauCands(new L1JetParticleCollection);
   std::auto_ptr<L1JetParticleCollection> nTauCands(new L1JetParticleCollection);
   std::auto_ptr<L1JetParticleCollection> cJetCands(new L1JetParticleCollection);
   std::auto_ptr<L1JetParticleCollection> fJetCands(new L1JetParticleCollection);
-  std::auto_ptr<L1EtMissParticleCollection> met(new L1EtMissParticleCollection);
-  std::auto_ptr<L1EtMissParticleCollection> mht(new L1EtMissParticleCollection);
+  std::auto_ptr<L1EtMissParticleCollection> metCands(new L1EtMissParticleCollection);
+  std::auto_ptr<L1EtMissParticleCollection> mhtCands(new L1EtMissParticleCollection);
 
   uint32_t expectedTotalET = 0;
 
@@ -215,25 +218,107 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     for(uint32_t crd = 0; crd < cards.size(); crd++) {
       vector<UCTRegion*> regions = cards[crd]->getRegions();
       for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
+	rgnCollection->push_back(regions[rgn]->rawData());
       }
     }
   }  
-
-  iEvent.put(regions);
+  iEvent.put(rgnCollection);
 
   if(!summaryCard->process()) {
     std::cerr << "UCT: Failed to process summary card" << std::endl;
     exit(1);      
   }
 
+  UCTGeometry g;
+  double pt = 0;
+  double eta = -999.;
+  double phi = -999.;
+  double mass = 0;
+  double caloScaleFactor = 0.5;
+  
+  std::list<UCTObject*> emObjs = summaryCard->getEMObjs();
+  for(std::list<UCTObject*>::const_iterator i = emObjs.begin(); i != emObjs.end(); i++) {
+    const UCTObject* object = *i;
+    pt = ((double) object->et()) * caloScaleFactor;
+    eta = g.getUCTTowerEta(object->iEta());
+    phi = g.getUCTTowerPhi(object->iPhi(), object->iEta());
+    nEGCands->push_back(L1EmParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EmParticle::kNonIsolated));
+  }
+  std::list<UCTObject*> isoEMObjs = summaryCard->getIsoEMObjs();
+  for(std::list<UCTObject*>::const_iterator i = isoEMObjs.begin(); i != isoEMObjs.end(); i++) {
+    const UCTObject* object = *i;
+    pt = ((double) object->et()) * caloScaleFactor;
+    eta = g.getUCTTowerEta(object->iEta());
+    phi = g.getUCTTowerPhi(object->iPhi(), object->iEta());
+    iEGCands->push_back(L1EmParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EmParticle::kIsolated));
+  }
+  std::list<UCTObject*> tauObjs = summaryCard->getTauObjs();
+  for(std::list<UCTObject*>::const_iterator i = tauObjs.begin(); i != tauObjs.end(); i++) {
+    const UCTObject* object = *i;
+    pt = ((double) object->et()) * caloScaleFactor;
+    eta = g.getUCTTowerEta(object->iEta());
+    phi = g.getUCTTowerPhi(object->iPhi(), object->iEta());
+    nTauCands->push_back(L1JetParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1JetParticle::kTau));
+  }
+  std::list<UCTObject*> isoTauObjs = summaryCard->getIsoTauObjs();
+  for(std::list<UCTObject*>::const_iterator i = isoTauObjs.begin(); i != isoTauObjs.end(); i++) {
+    const UCTObject* object = *i;
+    pt = ((double) object->et()) * caloScaleFactor;
+    eta = g.getUCTTowerEta(object->iEta());
+    phi = g.getUCTTowerPhi(object->iPhi(), object->iEta());
+    iTauCands->push_back(L1JetParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1JetParticle::kTau));
+  }
+  std::list<UCTObject*> centralJetObjs = summaryCard->getCentralJetObjs();
+  for(std::list<UCTObject*>::const_iterator i = centralJetObjs.begin(); i != centralJetObjs.end(); i++) {
+    const UCTObject* object = *i;
+    pt = ((double) object->et()) * caloScaleFactor;
+    eta = g.getUCTTowerEta(object->iEta());
+    phi = g.getUCTTowerPhi(object->iPhi(), object->iEta());
+    cJetCands->push_back(L1JetParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1JetParticle::kCentral));
+  }
+  std::list<UCTObject*> forwardJetObjs = summaryCard->getForwardJetObjs();
+  for(std::list<UCTObject*>::const_iterator i = forwardJetObjs.begin(); i != forwardJetObjs.end(); i++) {
+    const UCTObject* object = *i;
+    pt = ((double) object->et()) * caloScaleFactor;
+    eta = g.getUCTTowerEta(object->iEta());
+    phi = g.getUCTTowerPhi(object->iPhi(), object->iEta());
+    fJetCands->push_back(L1JetParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1JetParticle::kForward));
+  }
+
+  const UCTObject* et = summaryCard->getET();
+  pt = ((double) et->et()) * caloScaleFactor;
+  double totET = pt;
+  std::cout << "totET = " << totET << std::endl;
+  const UCTObject* met = summaryCard->getMET();
+  pt = ((double) met->et()) * caloScaleFactor;
+  std::cout << "met   = " << pt << std::endl;
+  eta = g.getUCTTowerEta(met->iEta());
+  std::cout << "eta   = " << eta << std::endl;
+  phi = g.getUCTTowerPhi(met->iPhi(), met->iEta());
+  std::cout << "phi   = " << phi << std::endl;
+  metCands->push_back(L1EtMissParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EtMissParticle::kMET, totET));
+  std::cout << "metCands made" << std::endl;
+
+  const UCTObject* ht = summaryCard->getHT();
+  pt = ((double) ht->et()) * caloScaleFactor;
+  double totHT = pt;
+  const UCTObject* mht = summaryCard->getMHT();
+  pt = ((double) mht->et()) * caloScaleFactor;
+  eta = g.getUCTTowerEta(mht->iEta());
+  phi = g.getUCTTowerPhi(mht->iPhi(), mht->iEta());
+  mhtCands->push_back(L1EtMissParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EtMissParticle::kMHT, totHT));
+  std::cout << "mhtCands made" << std::endl;
+  
   iEvent.put(iEGCands, "Isolated");
   iEvent.put(nEGCands, "NonIsolated");
   iEvent.put(iTauCands, "IsoTau");
   iEvent.put(nTauCands, "Tau");
   iEvent.put(cJetCands, "Central");
   iEvent.put(fJetCands, "Forward");
-  iEvent.put(met, "MET");
-  iEvent.put(mht, "MHT");
+  iEvent.put(metCands, "MET");
+  iEvent.put(mhtCands, "MHT");
+
+  std::cout << "*Cands put" << std::endl;
 
 }
 

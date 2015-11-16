@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdint.h>
+#include <math.h>
 
 using namespace std;
 
@@ -28,6 +29,13 @@ UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in) : uctLayer1(in) {
       extendedRegions.push_back(extendedRegion);
     }
   }
+  // FIXME: phi = 0 is probably not correct
+  sinPhi[0] = 0;
+  cosPhi[0] = 1;
+  for(int iPhi = 1; iPhi <= 72; iPhi++) {
+    sinPhi[iPhi] = sin((((double) iPhi / (double) 72) * 2 * 3.1415927) - 0.043633);
+    cosPhi[iPhi] = cos((((double) iPhi / (double) 72) * 2 * 3.1415927) - 0.043633);
+  }
 }
 
 UCTSummaryCard::~UCTSummaryCard() {
@@ -48,19 +56,53 @@ bool UCTSummaryCard::process() {
     }
   }
   // Then do the summary card processing
+  uint32_t etValue = 0;
+  uint32_t htValue = 0;
+  int sumEx = 0;
+  int sumEy = 0;
+  int sumHx = 0;
+  int sumHy = 0;
   for(int iEta = -NRegionsInCard; iEta <= NRegionsInCard; iEta++) {
     if(iEta == 0) break;
     for(uint32_t iPhi = 1; iPhi <= MaxUCTRegionsPhi; iPhi++) {
       UCTRegionIndex regionIndex(iEta, iPhi);
       processRegion(regionIndex);
+      const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
+      uint32_t et = uctRegion->et();
+      int hitCaloPhi = uctRegion->hitCaloPhi();
+      if(iEta == -NRegionsInCard) {
+	sumEx += ((int) ((double) et) * cosPhi[hitCaloPhi]);
+	sumEy += ((int) ((double) et) * sinPhi[hitCaloPhi]);
+	etValue += et;
+	if(et > 10) {
+	  sumHx += ((int) ((double) et) * cosPhi[hitCaloPhi]);
+	  sumHy += ((int) ((double) et) * sinPhi[hitCaloPhi]);
+	  htValue += et;
+	}
+      }
     }
   }
+  uint32_t metSquare = sumEx * sumEx + sumEy * sumEy;
+  uint32_t metValue = sqrt((double) metSquare);
+  double metPhi = (atan2(sumEy, sumEx) * 180. / 3.1415927) + 180.; // FIXME - phi=0 may not be correct
+  int metIPhi = (int) ( 72. * (metPhi / 360.));
+  uint32_t mhtSquare = sumHx * sumHx + sumHy * sumHy;
+  uint32_t mhtValue = sqrt((double) mhtSquare);
+  double mhtPhi = (atan2(sumHy, sumHx) * 180. / 3.1415927) + 180.; // FIXME - phi=0 may not be correct
+  int mhtIPhi = (int) ( 72. * (mhtPhi / 360.));
+
+  ET = new UCTObject(UCTObject::ET, etValue, 0, metIPhi, 0, 0, 0);
+  HT = new UCTObject(UCTObject::HT, htValue, 0, mhtIPhi, 0, 0, 0);
+  MET = new UCTObject(UCTObject::MET, metValue, 0, metIPhi, 0, 0, 0);
+  MHT = new UCTObject(UCTObject::MHT, mhtValue, 0, mhtIPhi, 0, 0, 0); // FIXME - cheating for now - requires more work
+
   // Then sort the candidates for output usage
   emObjs.sort();
   isoEMObjs.sort();
   tauObjs.sort();
   isoTauObjs.sort();
-  jetObjs.sort();
+  centralJetObjs.sort();
+  forwardJetObjs.sort();
   // Cool we never fail :)
   return true;
 }
@@ -109,7 +151,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
      cET >  sET && cET >  seET && cET >  eET && cET >  neET &&
      cET > JetSeed) {
     uint32_t jetET = et3x3 - pileup;
-    jetObjs.push_back(new UCTObject(UCTObject::jet, jetET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, 0, et3x3));
+    centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, 0, et3x3));
   }
 
   // tau Object - a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers

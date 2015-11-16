@@ -10,6 +10,10 @@ public:
     eGamma = 0x0010,
     isoTau = 0x0100,
     isoEGamma = 0x1000,
+    ET = 0x10000,
+    HT = 0x100000,
+    MET = 0x1000000,
+    MHT = 0x10000000,
     unknown = 0xDEADBEEF
   };
 
