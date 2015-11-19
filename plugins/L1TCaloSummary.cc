@@ -288,16 +288,11 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   const UCTObject* et = summaryCard->getET();
   pt = ((double) et->et()) * caloScaleFactor;
   double totET = pt;
-  std::cout << "totET = " << totET << std::endl;
   const UCTObject* met = summaryCard->getMET();
   pt = ((double) met->et()) * caloScaleFactor;
-  std::cout << "met   = " << pt << std::endl;
   eta = g.getUCTTowerEta(met->iEta());
-  std::cout << "eta   = " << eta << std::endl;
   phi = g.getUCTTowerPhi(met->iPhi(), met->iEta());
-  std::cout << "phi   = " << phi << std::endl;
   metCands->push_back(L1EtMissParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EtMissParticle::kMET, totET));
-  std::cout << "metCands made" << std::endl;
 
   const UCTObject* ht = summaryCard->getHT();
   pt = ((double) ht->et()) * caloScaleFactor;
@@ -307,7 +302,6 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   eta = g.getUCTTowerEta(mht->iEta());
   phi = g.getUCTTowerPhi(mht->iPhi(), mht->iEta());
   mhtCands->push_back(L1EtMissParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EtMissParticle::kMHT, totHT));
-  std::cout << "mhtCands made" << std::endl;
   
   iEvent.put(iEGCands, "Isolated");
   iEvent.put(nEGCands, "NonIsolated");
@@ -317,8 +311,6 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(fJetCands, "Forward");
   iEvent.put(metCands, "MET");
   iEvent.put(mhtCands, "MHT");
-
-  std::cout << "*Cands put" << std::endl;
 
 }
 

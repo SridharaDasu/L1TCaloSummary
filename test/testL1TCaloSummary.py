@@ -10,7 +10,7 @@ process.uct2016EmulatorDigis.verbose = cms.bool(True)
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:/data/dasu/Sept25_905539F2-5363-E511-831A-02163E013687.root')
+    fileNames = cms.untracked.vstring('file:/data/dasu/0EFD41DE-866B-E511-9644-02163E0143CE.root')
 )
 
 process.out = cms.OutputModule("PoolOutputModule",

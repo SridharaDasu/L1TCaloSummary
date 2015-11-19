@@ -195,6 +195,51 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     }
   }
   
+  // eGamma Object - This is a sad story
+  // eGamma should be in 2-3 contiguous towers, but we have no bandwidth to get a second cluster from cards
+  // so we use essentially the same clustering as for tau, but demand that energy is almost all in the ECAL
+  // pileup subtraction is critical to not overshoot - further this should work better for isolated eGamma
+  // a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers
+
+  if(cRegion.isEGammaLike()) {
+    UCTTowerIndex cHitTower = cRegion.hitTowerIndex();
+    uint32_t eGammaET = 0;
+    uint32_t isolation = et3x3;
+    if(g.isEdgeTower(cHitTower)) {
+      eGammaET = cRegion.et();
+    }
+    else {
+      UCTTowerIndex nHitTower = nRegion.hitTowerIndex();
+      if(g.areNeighbors(cHitTower, nHitTower)) {
+	eGammaET = cRegion.et() + nRegion.et();
+      }
+      else {
+	UCTTowerIndex sHitTower = sRegion.hitTowerIndex();
+	if(g.areNeighbors(cHitTower, sHitTower)) {
+	  eGammaET = cRegion.et() + sRegion.et();
+	}
+	else {
+	  UCTTowerIndex wHitTower = wRegion.hitTowerIndex();
+	  if(g.areNeighbors(cHitTower, wHitTower)) {
+	    eGammaET = cRegion.et() + wRegion.et();
+	  }
+	  else {
+	    UCTTowerIndex eHitTower = eRegion.hitTowerIndex();
+	    if(g.areNeighbors(cHitTower, eHitTower)) {
+	      eGammaET = cRegion.et() + eRegion.et();
+	    }
+	  }
+	}
+      }
+    }
+    double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
+    isolation = et3x3 - eGammaET - pileup;
+    emObjs.push_back(new UCTObject(UCTObject::eGamma, eGammaET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, isolation, et3x3));
+    if(isolation < ((uint32_t) (IsolationFactor * (double) eGammaET))) {
+      isoEMObjs.push_back(new UCTObject(UCTObject::isoEGamma, eGammaET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, isolation, et3x3));
+    }
+  }
+  
   return true;
 }
 
