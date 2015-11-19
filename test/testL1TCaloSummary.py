@@ -14,8 +14,8 @@ process.source = cms.Source("PoolSource",
 )
 
 process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('/data/dasu/l1tCaloSummary.root'),
-    outputCommands = cms.untracked.vstring('keep *')
+    fileName = cms.untracked.string('/data/dasu/l1tCaloSummary-reduced.root'),
+    outputCommands = cms.untracked.vstring('drop *', 'keep *_*_*_L1TCaloSummaryTest')
 )
 
 process.load('Configuration/StandardSequences/FrontierConditions_GlobalTag_condDBv2_cff')

@@ -113,7 +113,7 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   hcalTPSourceLabel(iConfig.getParameter<edm::InputTag>("hcalTPSource").label()),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
-  produces< L1TCaloRegionCollection >();
+  produces< L1TCaloRegionCollection >( "Regions" );
   produces< L1EmParticleCollection >( "Isolated" ) ;
   produces< L1EmParticleCollection >( "NonIsolated" ) ;
   produces< L1JetParticleCollection >( "Central" ) ;
@@ -222,7 +222,7 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
     }
   }  
-  iEvent.put(rgnCollection);
+  iEvent.put(rgnCollection, "Regions");
 
   if(!summaryCard->process()) {
     std::cerr << "UCT: Failed to process summary card" << std::endl;
