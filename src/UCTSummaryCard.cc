@@ -152,18 +152,17 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
      cET > JetSeed) {
     uint32_t jetET = et3x3 - pileup;
     centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, 0, et3x3));
+    std::cout << "Jet(et, eta, phi) = (" << jetET << ", " << cRegion.hitCaloEta() << ", " << cRegion.hitCaloPhi() << ")" << std::endl;
   }
 
   // tau Object - a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers
 
-  if(cRegion.isTauLike()) {
+  uint32_t TauSeed = 10; // FIXME: This should be a configurable parameter
+  if(cRegion.isTauLike() && cRegion.et() > TauSeed) {
     UCTTowerIndex cHitTower = cRegion.hitTowerIndex();
-    uint32_t tauET = 0;
+    uint32_t tauET = cRegion.et();
     uint32_t isolation = et3x3;
-    if(g.isEdgeTower(cHitTower)) {
-      tauET = cRegion.et();
-    }
-    else {
+    if(!g.isEdgeTower(cHitTower)) {
       UCTTowerIndex nHitTower = nRegion.hitTowerIndex();
       if(g.areNeighbors(cHitTower, nHitTower)) {
 	tauET = cRegion.et() + nRegion.et();
@@ -190,8 +189,10 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
     isolation = et3x3 - tauET - pileup;
     tauObjs.push_back(new UCTObject(UCTObject::tau, tauET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, isolation, et3x3));
+    std::cout << "Tau(et, eta, phi) = (" << tauET << ", " << cRegion.hitCaloEta() << ", " << cRegion.hitCaloPhi() << ")" << std::endl;
     if(isolation < ((uint32_t) (IsolationFactor * (double) tauET))) {
       isoTauObjs.push_back(new UCTObject(UCTObject::isoTau, tauET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, isolation, et3x3));
+      std::cout << "isoTau(et, eta, phi) = (" << tauET << ", " << cRegion.hitCaloEta() << ", " << cRegion.hitCaloPhi() << ")" << std::endl;
     }
   }
   
@@ -201,14 +202,12 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   // pileup subtraction is critical to not overshoot - further this should work better for isolated eGamma
   // a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers
 
-  if(cRegion.isEGammaLike()) {
+  uint32_t eGammaSeed = 5; // FIXME: This should be a configurable parameter
+  if(cRegion.isEGammaLike() && cRegion.et() > eGammaSeed) {
     UCTTowerIndex cHitTower = cRegion.hitTowerIndex();
-    uint32_t eGammaET = 0;
+    uint32_t eGammaET = cRegion.et();
     uint32_t isolation = et3x3;
-    if(g.isEdgeTower(cHitTower)) {
-      eGammaET = cRegion.et();
-    }
-    else {
+    if(!g.isEdgeTower(cHitTower)) {
       UCTTowerIndex nHitTower = nRegion.hitTowerIndex();
       if(g.areNeighbors(cHitTower, nHitTower)) {
 	eGammaET = cRegion.et() + nRegion.et();
@@ -235,8 +234,10 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
     isolation = et3x3 - eGammaET - pileup;
     emObjs.push_back(new UCTObject(UCTObject::eGamma, eGammaET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, isolation, et3x3));
+    std::cout << "emObj(et, eta, phi) = (" << eGammaET << ", " << cRegion.hitCaloEta() << ", " << cRegion.hitCaloPhi() << ")" << std::endl;
     if(isolation < ((uint32_t) (IsolationFactor * (double) eGammaET))) {
       isoEMObjs.push_back(new UCTObject(UCTObject::isoEGamma, eGammaET, cRegion.hitCaloEta(), cRegion.hitCaloPhi(), pileup, isolation, et3x3));
+      std::cout << "isoEMObj(et, eta, phi) = (" << eGammaET << ", " << cRegion.hitCaloEta() << ", " << cRegion.hitCaloPhi() << ")" << std::endl;
     }
   }
   

@@ -14,7 +14,7 @@ process.source = cms.Source("PoolSource",
 )
 
 process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('/data/dasu/l1tCaloSummary-reduced.root'),
+    fileName = cms.untracked.string('/data/dasu/l1tCaloSummary.root'),
     outputCommands = cms.untracked.vstring('drop *', 'keep *_*_*_L1TCaloSummaryTest')
 )
 
