@@ -23,10 +23,10 @@ const float miscActivityFraction = 0.1;
 bool vetoBit(bitset<4> etaPattern, bitset<4> phiPattern);
 
 UCTRegionExtended::UCTRegionExtended(const UCTRegion* r) :
-  UCTRegion(0, 0, 0, false)
+  UCTRegion(0, 0, false, 0)
 {
   if(r != 0) {
-    UCTRegion(r->getCrate(), r->getCard(), r->getRegion(), r->isNegativeEta());
+    UCTRegion(r->getCrate(), r->getCard(), r->isNegativeEta(), r->getRegion());
     regionSummary = r->compressedData();
   }
 }
