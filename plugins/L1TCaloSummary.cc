@@ -41,7 +41,6 @@
 
 #include "L1Trigger/L1TCaloSummary/src/UCTObject.hh"
 #include "L1Trigger/L1TCaloSummary/src/UCTSummaryCard.hh"
-#include "L1Trigger/L1TCaloSummary/src/UCTRegionExtended.hh"
 #include "L1Trigger/L1TCaloSummary/src/UCTGeometryExtended.hh"
 
 #include "DataFormats/L1Trigger/interface/L1EmParticle.h"

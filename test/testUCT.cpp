@@ -9,7 +9,6 @@ using namespace std;
 #include "L1Trigger/L1TCaloSummary/src/UCTObject.hh"
 #include "L1Trigger/L1TCaloSummary/src/UCTSummaryCard.hh"
 #include "L1Trigger/L1TCaloSummary/src/UCTGeometryExtended.hh"
-#include "L1Trigger/L1TCaloSummary/src/UCTRegionExtended.hh"
 
 #include "L1Trigger/L1TCaloLayer1/src/UCTLayer1.hh"
 #include "L1Trigger/L1TCaloLayer1/src/UCTCrate.hh"

@@ -8,7 +8,6 @@
 
 class UCTLayer1;
 class UCTObject;
-class UCTRegionExtended;
 
 class UCTSummaryCard {
 public:
@@ -73,8 +72,6 @@ private:
   uint32_t cardSummary;
 
   const UCTLayer1 *uctLayer1;
-
-  std::vector<UCTRegionExtended*> extendedRegions;
 
   double sinPhi[73]; // Make one extra so caloPhi : 1-72 can be used as index directly
   double cosPhi[73];
