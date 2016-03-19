@@ -329,17 +329,17 @@ void L1TCaloSummary::print() {
 	    if(towers[twr]->caloPhi() == hitPhi && towers[twr]->caloEta() == hitEta) {
 	      std::cout << "*";
 	    }
-	    towers[twr]->print(header);
+	    std::cout << *towers[twr];
 	    if(header) header = false;
 	  }
-	  regions[rgn]->print();
+	  std::cout << *regions[rgn];
 	}
       }
-      cards[crd]->print();
+      std::cout << *cards[crd];
     }
-    crates[crt]->print();
+    std::cout << *crates[crt];
   }
-  layer1->print();
+  std::cout << *layer1;
 }
 
 // ------------ method called once each job just before starting event loop  ------------

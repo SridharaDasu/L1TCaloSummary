@@ -32,7 +32,6 @@ UCTSummaryCard::~UCTSummaryCard() {
 }
 
 bool UCTSummaryCard::process() {
-  // Then do the summary card processing
   uint32_t etValue = 0;
   uint32_t htValue = 0;
   int sumEx = 0;
@@ -86,37 +85,79 @@ bool UCTSummaryCard::process() {
 
 bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
 
-  UCTGeometryExtended g;
-  UCTRegionIndex nIndex = g.getUCTRegionNorth(center);
-  UCTRegionIndex sIndex = g.getUCTRegionSouth(center);
-  UCTRegionIndex eIndex = g.getUCTRegionEast(center);
-  UCTRegionIndex wIndex = g.getUCTRegionWest(center);
-  UCTRegionIndex neIndex = g.getUCTRegionNE(center);
-  UCTRegionIndex nwIndex = g.getUCTRegionNW(center);
-  UCTRegionIndex seIndex = g.getUCTRegionSE(center);
-  UCTRegionIndex swIndex = g.getUCTRegionSW(center);
-
   const UCTRegion* cRegion(uctLayer1->getRegion(center));
-  const UCTRegion* nRegion(uctLayer1->getRegion(nIndex));
-  const UCTRegion* sRegion(uctLayer1->getRegion(sIndex));
-  const UCTRegion* eRegion(uctLayer1->getRegion(eIndex));
-  const UCTRegion* wRegion(uctLayer1->getRegion(wIndex));
+  uint32_t centralET = cRegion->et();
+  UCTTowerIndex centralHitTower = cRegion->hitTowerIndex();
+  int hitCaloEta = cRegion->hitCaloEta();
+  int hitCaloPhi = cRegion->hitCaloPhi();
+
+  UCTGeometryExtended g;
+
+  UCTRegionIndex northIndex = g.getUCTRegionNorth(center);
+  const UCTRegion* northRegion(uctLayer1->getRegion(northIndex));
+  uint32_t northET = 0;
+  UCTTowerIndex northHitTower;
+  if(northRegion != NULL) {
+    northET = northRegion->et();
+    northHitTower = northRegion->hitTowerIndex();
+  }
+
+  UCTRegionIndex southIndex = g.getUCTRegionSouth(center);
+  const UCTRegion* southRegion(uctLayer1->getRegion(southIndex));
+  uint32_t southET = 0;
+  UCTTowerIndex southHitTower;
+  if(southRegion != NULL) {
+    southET = southRegion->et();
+    southHitTower = southRegion->hitTowerIndex();
+  }
+
+  UCTRegionIndex eastIndex = g.getUCTRegionEast(center);
+  const UCTRegion* eastRegion(uctLayer1->getRegion(eastIndex));
+  uint32_t eastET = 0;
+  UCTTowerIndex eastHitTower;
+  if(eastRegion != NULL) {
+    eastET = eastRegion->et();
+    eastHitTower = eastRegion->hitTowerIndex();
+  }
+
+  UCTRegionIndex westIndex = g.getUCTRegionWest(center);
+  const UCTRegion* westRegion(uctLayer1->getRegion(westIndex));
+  uint32_t westET = 0;
+  UCTTowerIndex westHitTower;
+  if(westRegion != NULL) {
+    westET = westRegion->et();
+    westHitTower = westRegion->hitTowerIndex();
+  }
+
+  UCTRegionIndex neIndex = g.getUCTRegionNE(center);
   const UCTRegion* neRegion(uctLayer1->getRegion(neIndex));
+  uint32_t neET = 0;
+  if(neRegion != NULL) {
+    neET = neRegion->et();
+  }
+
+  UCTRegionIndex nwIndex = g.getUCTRegionNW(center);
   const UCTRegion* nwRegion(uctLayer1->getRegion(nwIndex));
+  uint32_t nwET = 0;
+  if(nwRegion != NULL) {
+    nwET = nwRegion->et();
+  }
+
+  UCTRegionIndex seIndex = g.getUCTRegionSE(center);
   const UCTRegion* seRegion(uctLayer1->getRegion(seIndex));
+  uint32_t seET = 0;
+  if(seRegion != NULL) {
+    seET = seRegion->et();
+  }
+
+  UCTRegionIndex swIndex = g.getUCTRegionSW(center);
   const UCTRegion* swRegion(uctLayer1->getRegion(swIndex));
+  uint32_t swET = 0;
+  if(swRegion != NULL) {
+    swET = swRegion->et();
+  }
 
-  uint32_t cET = cRegion->et();
-  uint32_t nET = nRegion->et();
-  uint32_t sET = sRegion->et();
-  uint32_t eET = eRegion->et();
-  uint32_t wET = wRegion->et();
-  uint32_t neET = neRegion->et();
-  uint32_t seET = seRegion->et();
-  uint32_t nwET = nwRegion->et();
-  uint32_t swET = swRegion->et();
-
-  uint32_t et3x3 = cET + nET + nwET + wET + swET + sET + seET + eET + neET;
+  uint32_t et3x3 = centralET + northET + nwET + westET + swET + southET + seET + eastET + neET;
 
   uint32_t pileup = 0; // FIXME: This should be looked up for the region using the calculated PUM 
 
@@ -124,40 +165,34 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
 
   // Jet - a 3x3 object with center greater than a seed and all neighbors
 
-  if(cET >= nET && cET >= nwET && cET >= wET && cET >= swET &&
-     cET >  sET && cET >  seET && cET >  eET && cET >  neET &&
-     cET > JetSeed) {
+  if(centralET >= northET && centralET >= nwET && centralET >= westET && centralET >= swET &&
+     centralET >  southET && centralET >  seET && centralET >  eastET && centralET >  neET &&
+     centralET > JetSeed) {
     uint32_t jetET = et3x3 - pileup;
-    centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, cRegion->hitCaloEta(), cRegion->hitCaloPhi(), pileup, 0, et3x3));
-    std::cout << "Jet(et, eta, phi) = (" << jetET << ", " << cRegion->hitCaloEta() << ", " << cRegion->hitCaloPhi() << ")" << std::endl;
+    centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, hitCaloEta, hitCaloPhi, pileup, 0, et3x3));
   }
 
   // tau Object - a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers
 
   uint32_t TauSeed = 10; // FIXME: This should be a configurable parameter
-  if(cRegion->isTauLike() && cRegion->et() > TauSeed) {
-    UCTTowerIndex cHitTower = cRegion->hitTowerIndex();
-    uint32_t tauET = cRegion->et();
+  if(cRegion->isTauLike() && centralET > TauSeed) {
+    uint32_t tauET = centralET;
     uint32_t isolation = et3x3;
-    if(!g.isEdgeTower(cHitTower)) {
-      UCTTowerIndex nHitTower = nRegion->hitTowerIndex();
-      if(g.areNeighbors(cHitTower, nHitTower)) {
-	tauET = cRegion->et() + nRegion->et();
+    if(!g.isEdgeTower(centralHitTower)) {
+      if(g.areNeighbors(centralHitTower, northHitTower)) {
+	tauET = centralET + northET;
       }
       else {
-	UCTTowerIndex sHitTower = sRegion->hitTowerIndex();
-	if(g.areNeighbors(cHitTower, sHitTower)) {
-	  tauET = cRegion->et() + sRegion->et();
+	if(g.areNeighbors(centralHitTower, southHitTower)) {
+	  tauET = centralET + southET;
 	}
 	else {
-	  UCTTowerIndex wHitTower = wRegion->hitTowerIndex();
-	  if(g.areNeighbors(cHitTower, wHitTower)) {
-	    tauET = cRegion->et() + wRegion->et();
+	  if(g.areNeighbors(centralHitTower, westHitTower)) {
+	    tauET = centralET + westET;
 	  }
 	  else {
-	    UCTTowerIndex eHitTower = eRegion->hitTowerIndex();
-	    if(g.areNeighbors(cHitTower, eHitTower)) {
-	      tauET = cRegion->et() + eRegion->et();
+	    if(g.areNeighbors(centralHitTower, eastHitTower)) {
+	      tauET = centralET + eastET;
 	    }
 	  }
 	}
@@ -165,11 +200,9 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     }
     double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
     isolation = et3x3 - tauET - pileup;
-    tauObjs.push_back(new UCTObject(UCTObject::tau, tauET, cRegion->hitCaloEta(), cRegion->hitCaloPhi(), pileup, isolation, et3x3));
-    std::cout << "Tau(et, eta, phi) = (" << tauET << ", " << cRegion->hitCaloEta() << ", " << cRegion->hitCaloPhi() << ")" << std::endl;
+    tauObjs.push_back(new UCTObject(UCTObject::tau, tauET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
     if(isolation < ((uint32_t) (IsolationFactor * (double) tauET))) {
-      isoTauObjs.push_back(new UCTObject(UCTObject::isoTau, tauET, cRegion->hitCaloEta(), cRegion->hitCaloPhi(), pileup, isolation, et3x3));
-      std::cout << "isoTau(et, eta, phi) = (" << tauET << ", " << cRegion->hitCaloEta() << ", " << cRegion->hitCaloPhi() << ")" << std::endl;
+      isoTauObjs.push_back(new UCTObject(UCTObject::isoTau, tauET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
     }
   }
   
@@ -180,29 +213,24 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   // a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers
 
   uint32_t eGammaSeed = 5; // FIXME: This should be a configurable parameter
-  if(cRegion->isEGammaLike() && cRegion->et() > eGammaSeed) {
-    UCTTowerIndex cHitTower = cRegion->hitTowerIndex();
-    uint32_t eGammaET = cRegion->et();
+  if(cRegion->isEGammaLike() && centralET > eGammaSeed) {
+    uint32_t eGammaET = centralET;
     uint32_t isolation = et3x3;
-    if(!g.isEdgeTower(cHitTower)) {
-      UCTTowerIndex nHitTower = nRegion->hitTowerIndex();
-      if(g.areNeighbors(cHitTower, nHitTower)) {
-	eGammaET = cRegion->et() + nRegion->et();
+    if(!g.isEdgeTower(centralHitTower)) {
+      if(g.areNeighbors(centralHitTower, northHitTower)) {
+	eGammaET = centralET + northET;
       }
       else {
-	UCTTowerIndex sHitTower = sRegion->hitTowerIndex();
-	if(g.areNeighbors(cHitTower, sHitTower)) {
-	  eGammaET = cRegion->et() + sRegion->et();
+	if(g.areNeighbors(centralHitTower, southHitTower)) {
+	  eGammaET = centralET + southET;
 	}
 	else {
-	  UCTTowerIndex wHitTower = wRegion->hitTowerIndex();
-	  if(g.areNeighbors(cHitTower, wHitTower)) {
-	    eGammaET = cRegion->et() + wRegion->et();
+	  if(g.areNeighbors(centralHitTower, westHitTower)) {
+	    eGammaET = centralET + westET;
 	  }
 	  else {
-	    UCTTowerIndex eHitTower = eRegion->hitTowerIndex();
-	    if(g.areNeighbors(cHitTower, eHitTower)) {
-	      eGammaET = cRegion->et() + eRegion->et();
+	    if(g.areNeighbors(centralHitTower, eastHitTower)) {
+	      eGammaET = centralET + eastET;
 	    }
 	  }
 	}
@@ -210,11 +238,9 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     }
     double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
     isolation = et3x3 - eGammaET - pileup;
-    emObjs.push_back(new UCTObject(UCTObject::eGamma, eGammaET, cRegion->hitCaloEta(), cRegion->hitCaloPhi(), pileup, isolation, et3x3));
-    std::cout << "emObj(et, eta, phi) = (" << eGammaET << ", " << cRegion->hitCaloEta() << ", " << cRegion->hitCaloPhi() << ")" << std::endl;
+    emObjs.push_back(new UCTObject(UCTObject::eGamma, eGammaET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
     if(isolation < ((uint32_t) (IsolationFactor * (double) eGammaET))) {
-      isoEMObjs.push_back(new UCTObject(UCTObject::isoEGamma, eGammaET, cRegion->hitCaloEta(), cRegion->hitCaloPhi(), pileup, isolation, et3x3));
-      std::cout << "isoEMObj(et, eta, phi) = (" << eGammaET << ", " << cRegion->hitCaloEta() << ", " << cRegion->hitCaloPhi() << ")" << std::endl;
+      isoEMObjs.push_back(new UCTObject(UCTObject::isoEGamma, eGammaET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
     }
   }
   

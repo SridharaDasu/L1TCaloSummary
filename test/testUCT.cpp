@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdint.h>
+#include <math.h>
 
 using namespace std;
 
@@ -28,6 +29,27 @@ double flatRandom(double min, double max) {
   return f;
 }
 
+double poissonRandom(double mean) {
+  static double oldMean = -1;
+  static double g;
+  if(mean != oldMean) {
+    oldMean = mean;
+    if(mean == 0) {
+      g = 0;
+    }
+    else {
+      g = exp(-mean);
+    }
+  }    
+  double em = -1;
+  double t = 1;
+  do {
+    em++;
+    t *= flatRandom(0., 1.);
+  } while(t > g);
+  return em;
+}
+
 void print(UCTLayer1& uct) {
   vector<UCTCrate*> crates = uct.getCrates();
   for(uint32_t crt = 0; crt < crates.size(); crt++) {
@@ -44,17 +66,17 @@ void print(UCTLayer1& uct) {
 	    if(towers[twr]->caloPhi() == hitPhi && towers[twr]->caloEta() == hitEta) {
 	      std::cout << "*";
 	    }
-	    towers[twr]->print(header);
+	    std::cout << *towers[twr];
 	    if(header) header = false;
 	  }
-	  regions[rgn]->print();
+	  std::cout << *regions[rgn];
 	}
       }
-      cards[crd]->print();
+      std::cout << *cards[crd];
     }
-    crates[crt]->print();
+    std::cout << *crates[crt];
   }
-  uct.print();
+  std::cout << uct;
 }
 
 int main(int argc, char** argv) {
@@ -76,57 +98,47 @@ int main(int argc, char** argv) {
       exit(1);
     }
     
-    // Make an electron and put it in a random location within UCT
+    // Put a random number of towers in the UCT 
+
+    uint32_t expectedTotalET = 0;
     
-    uint32_t eleET = (random() & 0xFF); // Random energy up to the maximum allowed
-    bool eleFG = ((random() % 100) < 95); // 5% of the time eleFG Veto should "kill" electron
-    uint32_t hcalE = (random() & 0x00000003); // Assume HCAL is noise in bottom two bits :(
-    uint32_t hcalF = 0; // Ignored
-    int caloEta = ((random()+1) % 28); // Distribute uniformly in +/- eta within acceptance
-    while(caloEta < 1 || caloEta > 28) caloEta = ((random()+1) % 28);
-    if((random() & 0x1) != 0) caloEta = -caloEta;
-    int caloPhi = ((random()+1) % 72); // Distribute uniformly in all phi
-    while(caloPhi < 1 || caloPhi > 72) caloPhi = ((random()+1) % 72);
-    UCTTowerIndex t = UCTTowerIndex(caloEta, caloPhi);
-    if(!uctLayer1.setEventData(t, eleFG, eleET, hcalF, hcalE)) {
-      std::cerr << "UCT: Failed loading an eGamma candidate" << std::endl;
-      exit(1);
+    // ECAL TPGs - set a mean of 100 random ECAL towers!
+    uint32_t nHitTowers = poissonRandom(100.);
+    for(uint32_t i = 0; i < nHitTowers; i++) {
+      uint32_t et = (random() & 0xFF); // Random energy up to the maximum allowed
+      bool fg = ((random() % 100) < 95); // 5% of the time eleFG Veto should "kill" electron
+      int caloEta = ((random()+1) % 28); // Distribute uniformly in +/- eta within acceptance
+      while(caloEta < 1 || caloEta > 28) caloEta = ((random()+1) % 28);
+      if((random() & 0x1) != 0) caloEta = -caloEta;
+      int caloPhi = ((random()+1) % 72); // Distribute uniformly in all phi
+      while(caloPhi < 1 || caloPhi > 72) caloPhi = ((random()+1) % 72);
+      UCTTowerIndex t = UCTTowerIndex(caloEta, caloPhi);
+      if(!uctLayer1.setECALData(t, fg, et)) {
+	std::cerr << "UCT: Failed loading an ECAL tower" << std::endl;
+	exit(1);
+      }
+      expectedTotalET += et;
     }
-    uint32_t expectedTotalET = eleET + hcalE;
-    // For 30% of the cases add a non-zero neighbor tower
-    if((random() % 100) > 70) {
-      uint32_t neighborEleET = (random() & (0xFF - eleET));
-      int neighborCaloEta = caloEta;
-      int neighborCaloPhi = caloPhi;
-      // Half the time the neighbor is in eta direction
-      bool etaNeighbor = true;
-      if((random() & 0x1) != 0) etaNeighbor = false;
-      if(etaNeighbor) {
-	neighborCaloEta++; 
-	if(neighborCaloEta == 0) neighborCaloEta = 1;
+
+    // HCAL TPGs - set a mean of 100 random HCAL towers!
+    nHitTowers = poissonRandom(100.);
+    for(uint32_t i = 0; i < nHitTowers; i++) {
+      uint32_t et = (random() & 0xFF); // Random energy up to the maximum allowed
+      uint32_t fb = (random() & 0x1F); // Set random five bits - this is true emulation!
+      int caloEta = ((random()+1) % 28); // Distribute uniformly in +/- eta within acceptance
+      while(caloEta < 1 || caloEta > 28) caloEta = ((random()+1) % 28);
+      if((random() & 0x1) != 0) caloEta = -caloEta;
+      int caloPhi = ((random()+1) % 72); // Distribute uniformly in all phi
+      while(caloPhi < 1 || caloPhi > 72) caloPhi = ((random()+1) % 72);
+      UCTTowerIndex t = UCTTowerIndex(caloEta, caloPhi);
+      if(!uctLayer1.setHCALData(t, fb, et)) {
+	std::cerr << "UCT: Failed loading an HCAL tower" << std::endl;
+	exit(1);
       }
-      else {
-	neighborCaloPhi++; 
-	if(neighborCaloPhi == 73) neighborCaloPhi = 1;
-      }
-      uint32_t neighborHCalE = (random() & 0x00000003); // Assume HCAL is noise in bottom two bits :(
-      // Make sure the neighbor is within "acceptance"
-      if(neighborCaloEta < 29) {
-	UCTTowerIndex n = UCTTowerIndex(neighborCaloEta, neighborCaloPhi);
-	if(!uctLayer1.setEventData(n, eleFG, neighborEleET, hcalF, neighborHCalE)) {
-	  std::cerr << "UCT: Failed loading an eGamma candidate" << std::endl;
-	  exit(1);
-	}
-	// Set eleET to be the total
-	expectedTotalET += (neighborEleET + neighborHCalE);
-	// Make sure that position is fixed to the highest, it could be the neighbor!
-	if(neighborEleET > eleET) {
-	  caloEta = neighborCaloEta;
-	  caloPhi = neighborCaloPhi;
-	}
-      }
+      expectedTotalET += et;
     }
-  
+
+    // Process
     if(!uctLayer1.process()) {
       std::cerr << "UCT: Failed to process layer 1" << std::endl;
       exit(1);
