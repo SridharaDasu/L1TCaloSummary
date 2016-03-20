@@ -32,6 +32,7 @@ UCTSummaryCard::~UCTSummaryCard() {
 }
 
 bool UCTSummaryCard::process() {
+  clearEvent();
   uint32_t etValue = 0;
   uint32_t htValue = 0;
   int sumEx = 0;
@@ -283,6 +284,12 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
 }
 
 bool UCTSummaryCard::clearEvent() {
+  emObjs.clear();
+  isoEMObjs.clear();
+  tauObjs.clear();
+  isoTauObjs.clear();
+  centralJetObjs.clear();
+  forwardJetObjs.clear();
   return true;
 }
 
