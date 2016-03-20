@@ -1,3 +1,4 @@
+import os
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("L1TCaloSummaryTest")
@@ -50,16 +51,14 @@ process.load('L1Trigger.Configuration.CaloTriggerPrimitives_cff')
 
 process.load('EventFilter.L1TXRawToDigi.caloLayer1Stage2Digis_cfi')
 
-process.load('L1Trigger.L1TCaloLayer1.simCaloStage2Layer1Digis_cfi')
-process.simCaloStage2Layer1Digis.useECALLUT = cms.bool(False)
-process.simCaloStage2Layer1Digis.useHCALLUT = cms.bool(False)
-process.simCaloStage2Layer1Digis.useHFLUT = cms.bool(False)
-process.simCaloStage2Layer1Digis.verbose = cms.bool(False)
-process.simCaloStage2Layer1Digis.ecalToken = cms.InputTag("l1tCaloLayer1Digis")
-process.simCaloStage2Layer1Digis.hcalToken = cms.InputTag("l1tCaloLayer1Digis")
-
 process.load('L1Trigger.L1TCaloSummary.uct2016EmulatorDigis_cfi')
-process.uct2016EmulatorDigis.verbose = cms.bool(True)
+process.uct2016EmulatorDigis.useECALLUT = cms.bool(False)
+process.uct2016EmulatorDigis.useHCALLUT = cms.bool(False)
+process.uct2016EmulatorDigis.useHFLUT = cms.bool(False)
+process.uct2016EmulatorDigis.useLSB = cms.bool(False)
+process.uct2016EmulatorDigis.verbose = cms.bool(False)
+process.uct2016EmulatorDigis.ecalToken = cms.InputTag("l1tCaloLayer1Digis")
+process.uct2016EmulatorDigis.hcalToken = cms.InputTag("l1tCaloLayer1Digis")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
@@ -67,11 +66,13 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(inputFiles)
 )
 
+outputFile = '/data/' + os.environ['USER'] + '/l1tCaloSummary-' + str(options.runNumber) + '.root'
+
 process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('/data/dasu/l1tCaloSummary.root'),
+    fileName = cms.untracked.string(outputFile),
     outputCommands = cms.untracked.vstring('drop *', 'keep *_*_*_L1TCaloSummaryTest')
 )
 
-process.p = cms.Path(process.l1tCaloLayer1Digis*process.simCaloStage2Layer1Digis*process.uct2016EmulatorDigis)
+process.p = cms.Path(process.l1tCaloLayer1Digis*process.uct2016EmulatorDigis)
 
 process.e = cms.EndPath(process.out)

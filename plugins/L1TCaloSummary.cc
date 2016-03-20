@@ -54,6 +54,8 @@ typedef std::vector<uint32_t> L1TCaloRegionCollection;
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 
+#include "L1Trigger/L1TCaloLayer1/src/L1TCaloLayer1FetchLUTs.hh"
+
 using namespace l1extra;
 using namespace std;
 
@@ -73,7 +75,7 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&) override;
   virtual void endJob() override;
       
-  //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
+  virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
   //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
   //virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
   //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
@@ -87,6 +89,17 @@ private:
   edm::EDGetTokenT<HcalTrigPrimDigiCollection> hcalTPSource;
   std::string hcalTPSourceLabel;
 
+  std::vector< std::vector< std::vector < uint32_t > > > ecalLUT;
+  std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
+  std::vector< std::vector< uint32_t > > hfLUT;
+
+  std::vector< UCTTower* > twrList;
+
+  bool useLSB;
+  bool useCalib;
+  bool useECALLUT;
+  bool useHCALLUT;
+  bool useHFLUT;
   bool verbose;
 
   UCTLayer1 *layer1;
@@ -106,10 +119,18 @@ private:
 // constructors and destructor
 //
 L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
-  ecalTPSource(consumes<EcalTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("ecalTPSource"))),
-  ecalTPSourceLabel(iConfig.getParameter<edm::InputTag>("ecalTPSource").label()),
-  hcalTPSource(consumes<HcalTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("hcalTPSource"))),
-  hcalTPSourceLabel(iConfig.getParameter<edm::InputTag>("hcalTPSource").label()),
+  ecalTPSource(consumes<EcalTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("ecalToken"))),
+  ecalTPSourceLabel(iConfig.getParameter<edm::InputTag>("ecalToken").label()),
+  hcalTPSource(consumes<HcalTrigPrimDigiCollection>(iConfig.getParameter<edm::InputTag>("hcalToken"))),
+  hcalTPSourceLabel(iConfig.getParameter<edm::InputTag>("hcalToken").label()),
+  ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
+  hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
+  hfLUT(12, std::vector < uint32_t >(256)),
+  useLSB(iConfig.getParameter<bool>("useLSB")),
+  useCalib(iConfig.getParameter<bool>("useCalib")),
+  useECALLUT(iConfig.getParameter<bool>("useECALLUT")),
+  useHCALLUT(iConfig.getParameter<bool>("useHCALLUT")),
+  useHFLUT(iConfig.getParameter<bool>("useHFLUT")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
   produces< L1TCaloRegionCollection >( "Regions" );
@@ -123,6 +144,19 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   produces< L1EtMissParticleCollection >( "MHT" ) ;
   layer1 = new UCTLayer1;
   summaryCard = new UCTSummaryCard(layer1);
+  vector<UCTCrate*> crates = layer1->getCrates();
+  for(uint32_t crt = 0; crt < crates.size(); crt++) {
+    vector<UCTCard*> cards = crates[crt]->getCards();
+    for(uint32_t crd = 0; crd < cards.size(); crd++) {
+      vector<UCTRegion*> regions = cards[crd]->getRegions();
+      for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
+	vector<UCTTower*> towers = regions[rgn]->getTowers();
+	for(uint32_t twr = 0; twr < towers.size(); twr++) {
+	  twrList.push_back(towers[twr]);
+	}
+      }
+    }
+  }
 }
 
 
@@ -180,21 +214,42 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   for ( const auto& hcalTp : *hcalTPs ) {
     int caloEta = hcalTp.id().ieta();
-    int caloPhi = hcalTp.id().iphi();
-    int et = hcalTp.SOI_compressedEt();
-    bool fg = hcalTp.SOI_fineGrain();
-    if(et != 0) {
-      UCTTowerIndex t = UCTTowerIndex(caloEta, caloPhi);
-      uint32_t featureBits = 0;
-      if(fg) featureBits = 0x1F; // Set all five feature bits for the moment - they are not defined in HW / FW yet!
-      if(!layer1->setHCALData(t, et, featureBits)) {
-	std::cerr << "UCT: Failed loading an HCAL tower" << std::endl;
-	return;
-
+    uint32_t absCaloEta = abs(caloEta);
+    // Tower 29 is not used by Layer-1
+    if(absCaloEta == 29) {
+      continue;
+    }
+    // Prevent usage of HF TPs with Layer-1 emulator if HCAL TPs are old style
+    else if(hcalTp.id().version() == 0 && absCaloEta > 29) {
+      continue;
+    }
+    else if(absCaloEta <= 41) {
+      int caloPhi = hcalTp.id().iphi();
+      if(caloPhi <= 72) {
+	int et = hcalTp.SOI_compressedEt();
+	bool fg = hcalTp.SOI_fineGrain();
+	if(et != 0) {
+	  UCTTowerIndex t = UCTTowerIndex(caloEta, caloPhi);
+	  uint32_t featureBits = 0;
+	  if(fg) featureBits = 0x1F; // Set all five feature bits for the moment - they are not defined in HW / FW yet!
+	  if(!layer1->setHCALData(t, featureBits, et)) {
+	    std::cerr << "caloEta = " << caloEta << "; caloPhi =" << caloPhi << std::endl;
+	    std::cerr << "UCT: Failed loading an HCAL tower" << std::endl;
+	    return;
+	    
+	  }
+	  expectedTotalET += et;
+	}
       }
-      expectedTotalET += et;
+      else {
+	std::cerr << "Illegal Tower: caloEta = " << caloEta << "; caloPhi =" << caloPhi << std::endl;	
+      }
+    }
+    else {
+      std::cerr << "Illegal Tower: caloEta = " << caloEta << std::endl;
     }
   }
+
   if(!layer1->process()) {
     std::cerr << "UCT: Failed to process layer 1" << std::endl;
     exit(1);
@@ -354,12 +409,17 @@ L1TCaloSummary::endJob() {
 }
 
 // ------------ method called when starting to processes a run  ------------
-/*
-  void
-  L1TCaloSummary::beginRun(edm::Run const&, edm::EventSetup const&)
-  {
+void
+L1TCaloSummary::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {
+  if(!L1TCaloLayer1FetchLUTs(iSetup, ecalLUT, hcalLUT, hfLUT, useLSB, useCalib, useECALLUT, useHCALLUT, useHFLUT)) {
+    std::cerr << "L1TCaloLayer1::beginRun: failed to fetch LUTS - using unity" << std::endl;
   }
-*/
+  for(uint32_t twr = 0; twr < twrList.size(); twr++) {
+    twrList[twr]->setECALLUT(&ecalLUT);
+    twrList[twr]->setHCALLUT(&hcalLUT);
+    twrList[twr]->setHFLUT(&hfLUT);
+    }
+}
  
 // ------------ method called when ending the processing of a run  ------------
 /*

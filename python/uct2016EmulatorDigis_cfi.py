@@ -1,7 +1,12 @@
 import FWCore.ParameterSet.Config as cms
 
 uct2016EmulatorDigis = cms.EDProducer('L1TCaloSummary',
-                                      ecalTPSource = cms.InputTag("l1tCaloLayer1Digis"),
-                                      hcalTPSource = cms.InputTag("l1tCaloLayer1Digis"),
+                                      ecalToken = cms.InputTag("simEcalTriggerPrimitiveDigis"),
+                                      hcalToken = cms.InputTag("simHcalTriggerPrimitiveDigis"),
+                                      useLSB = cms.bool(True),
+                                      useCalib = cms.bool(True),
+                                      useECALLUT = cms.bool(True),
+                                      useHCALLUT = cms.bool(True),
+                                      useHFLUT = cms.bool(True),
                                       verbose = cms.bool(False)
                                       )
