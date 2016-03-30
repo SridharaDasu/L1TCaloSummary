@@ -40,7 +40,7 @@ bool UCTSummaryCard::process() {
   int sumHx = 0;
   int sumHy = 0;
   for(int iEta = -NRegionsInCard; iEta <= NRegionsInCard; iEta++) {
-    if(iEta == 0) break;
+    if(iEta == 0) continue;
     for(uint32_t iPhi = 1; iPhi <= MaxUCTRegionsPhi; iPhi++) {
       UCTRegionIndex regionIndex(iEta, iPhi);
       processRegion(regionIndex);
@@ -189,6 +189,18 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
      centralET > JetSeed) {
     uint32_t jetET = et3x3 - pileup;
     centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, hitCaloEta, hitCaloPhi, pileup, 0, et3x3));
+    if(jetET > 30) {
+      std::cout << "Jet (ET, eta, phi) = (" << std::dec << jetET << ", " << hitCaloEta << ", " << hitCaloPhi << ")" << std::endl;
+      std::cout << "Center " << *cRegion;
+      if(northRegion != nullptr) std::cout << "North " << *northRegion;
+      if(southRegion != nullptr) std::cout << "South " << *southRegion;
+      if(westRegion != nullptr) std::cout << "West " << *westRegion;
+      if(eastRegion != nullptr) std::cout << "East " << *eastRegion;
+      if(neRegion != nullptr) std::cout << "NE " << *neRegion;
+      if(nwRegion != nullptr) std::cout << "NE " << *nwRegion;
+      if(seRegion != nullptr) std::cout << "SE " << *seRegion;
+      if(swRegion != nullptr) std::cout << "SW " << *swRegion;
+    }
   }
 
   // tau Object - a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers

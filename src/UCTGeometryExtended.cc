@@ -88,3 +88,14 @@ UCTRegionIndex UCTGeometryExtended::getUCTRegionSW(UCTRegionIndex center) {
   return UCTRegionIndex(eta, phi);
 }
 
+bool UCTGeometryExtended::areNeighbors(UCTTowerIndex a, UCTTowerIndex b) {
+  int diffEta = std::abs(a.first - b.first);
+  int diffPhi = std::abs(a.second - b.second);
+  if(diffEta <= 1 && diffPhi < 1) return true;
+  return false;
+}
+
+bool UCTGeometryExtended::isEdgeTower(UCTTowerIndex a) {
+  if(a.first == -MaxUCTRegionsEta || a.first == +MaxUCTRegionsEta) return true;
+  return false;
+}

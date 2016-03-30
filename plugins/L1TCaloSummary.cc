@@ -344,6 +344,9 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     eta = g.getUCTTowerEta(object->iEta());
     phi = g.getUCTTowerPhi(object->iPhi());
     cJetCands->push_back(L1JetParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1JetParticle::kCentral));
+    if(pt > 30.) {
+      std::cout << "Jet: pt = " << pt << " eta = " << eta << " phi = " << phi << std::endl;
+    }
   }
   std::list<UCTObject*> forwardJetObjs = summaryCard->getForwardJetObjs();
   for(std::list<UCTObject*>::const_iterator i = forwardJetObjs.begin(); i != forwardJetObjs.end(); i++) {
@@ -390,17 +393,15 @@ void L1TCaloSummary::print() {
     for(uint32_t crd = 0; crd < cards.size(); crd++) {
       vector<UCTRegion*> regions = cards[crd]->getRegions();
       for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
-	if(regions[rgn]->et() > 0) {
+	if(regions[rgn]->et() > 10) {
 	  int hitEta = regions[rgn]->hitCaloEta();
 	  int hitPhi = regions[rgn]->hitCaloPhi();
 	  vector<UCTTower*> towers = regions[rgn]->getTowers();
-	  bool header = true;
 	  for(uint32_t twr = 0; twr < towers.size(); twr++) {
 	    if(towers[twr]->caloPhi() == hitPhi && towers[twr]->caloEta() == hitEta) {
 	      std::cout << "*";
 	    }
-	    std::cout << *towers[twr];
-	    if(header) header = false;
+	    if(towers[twr]->et() > 10) std::cout << *towers[twr];
 	  }
 	  std::cout << *regions[rgn];
 	}
