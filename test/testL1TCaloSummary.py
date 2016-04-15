@@ -82,7 +82,7 @@ process.uct2016EmulatorDigis.verbose = cms.bool(False)
 process.uct2016EmulatorDigis.ecalToken = cms.InputTag("l1tCaloLayer1Digis")
 process.uct2016EmulatorDigis.hcalToken = cms.InputTag("l1tCaloLayer1Digis")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(inputFiles)

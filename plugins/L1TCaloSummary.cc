@@ -344,7 +344,7 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     eta = g.getUCTTowerEta(object->iEta());
     phi = g.getUCTTowerPhi(object->iPhi());
     cJetCands->push_back(L1JetParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1JetParticle::kCentral));
-    if(pt > 30.) {
+    if(pt > 150.) {
       std::cout << "Jet: pt = " << pt << " eta = " << eta << " phi = " << phi << std::endl;
     }
   }

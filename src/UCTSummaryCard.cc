@@ -189,7 +189,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
      centralET > JetSeed) {
     uint32_t jetET = et3x3 - pileup;
     centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, hitCaloEta, hitCaloPhi, pileup, 0, et3x3));
-    if(jetET > 30) {
+    if(jetET > 150) {
       std::cout << "Jet (ET, eta, phi) = (" << std::dec << jetET << ", " << hitCaloEta << ", " << hitCaloPhi << ")" << std::endl;
       std::cout << "Center " << *cRegion;
       if(northRegion != nullptr) std::cout << "North " << *northRegion;
