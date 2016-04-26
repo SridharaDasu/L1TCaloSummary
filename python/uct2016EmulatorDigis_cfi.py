@@ -30,5 +30,7 @@ uct2016EmulatorDigis = cms.EDProducer('L1TCaloSummary',
                                       pumLUT19 = cms.vuint32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                                       pumLUT20 = cms.vuint32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                                       pumLUT21 = cms.vuint32(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+                                      tauSeed = cms.uint32(10),
+                                      tauIsolationFactor = cms.double(0.3),
                                       verbose = cms.bool(False)
                                       )
