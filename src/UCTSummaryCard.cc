@@ -215,13 +215,22 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
 	tauET += northET;
 	neighborMatchCount++;
       }
+      else if(northIsTauLike && centralET < northET){
+	tauET = 0;
+      }
       if(g.areNeighbors(centralHitTower, southHitTower) && southIsTauLike && centralET > southET) {
 	tauET += southET;
 	neighborMatchCount++;
       }
+      else if(southIsTauLike && centralET <= southET){
+	tauET = 0;
+      }
       if(g.areNeighbors(centralHitTower, westHitTower) && westIsTauLike && centralET >= westET) {
 	tauET += westET;
 	neighborMatchCount++;
+      }      
+      else if(westIsTauLike && centralET < westET){
+	tauET = 0;
       }
       if(g.areNeighbors(centralHitTower, eastHitTower) && eastIsTauLike && centralET > eastET) {
 	tauET += eastET;
