@@ -101,6 +101,10 @@ private:
   bool useECALLUT;
   bool useHCALLUT;
   bool useHFLUT;
+
+  uint32_t tauSeed;
+  float tauIsolationFactor;
+
   bool verbose;
 
   UCTLayer1 *layer1;
@@ -132,6 +136,8 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   useECALLUT(iConfig.getParameter<bool>("useECALLUT")),
   useHCALLUT(iConfig.getParameter<bool>("useHCALLUT")),
   useHFLUT(iConfig.getParameter<bool>("useHFLUT")),
+  tauSeed(iConfig.getParameter<unsigned int>("tauSeed")),
+  tauIsolationFactor(iConfig.getParameter<double>("tauIsolationFactor")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
   produces< L1CaloRegionCollection >();
@@ -145,6 +151,8 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   produces< L1EtMissParticleCollection >( "MHT" ) ;
   layer1 = new UCTLayer1;
   summaryCard = new UCTSummaryCard(layer1);
+  summaryCard->setTauSeed(tauSeed);
+  summaryCard->setTauIsolationFactor(tauIsolationFactor);
   vector<UCTCrate*> crates = layer1->getCrates();
   for(uint32_t crt = 0; crt < crates.size(); crt++) {
     vector<UCTCard*> cards = crates[crt]->getCards();

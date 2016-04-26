@@ -19,6 +19,10 @@ using namespace std;
 #include "L1Trigger/L1TCaloLayer1/src/UCTGeometry.hh"
 
 UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in) : uctLayer1(in) {
+  //initial thresholds (should be set by plugin, putting initial values for sanity)
+  tauSeed = 10;
+  tauIsolationFactor = 0.3;
+
   // FIXME: phi = 0 is probably not correct
   sinPhi[0] = 0;
   cosPhi[0] = 1;
@@ -205,8 +209,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
 
   // tau Object - a single region or a 2-region sum, where the neighbor with lower ET is located using matching hit calo towers
 
-  uint32_t TauSeed = 10; // FIXME: This should be a configurable parameter
-  if(centralIsTauLike && centralET > TauSeed) {
+  //uint32_t TauSeed = 10; // FIXME: This should be a configurable parameter
+  if(centralIsTauLike && centralET > tauSeed) {
     uint32_t tauET = centralET;
     uint32_t isolation = et3x3;
     int neighborMatchCount = 0;
@@ -252,9 +256,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     }
     if(tauET != 0) {
       tauObjs.push_back(new UCTObject(UCTObject::tau, tauET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
-      double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
       isolation = et3x3 - tauET - pileup;
-      if(isolation < ((uint32_t) (IsolationFactor * (double) tauET))) {
+      if(isolation < ((uint32_t) (tauIsolationFactor * (double) tauET))) {
 	isoTauObjs.push_back(new UCTObject(UCTObject::isoTau, tauET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
       }
     }

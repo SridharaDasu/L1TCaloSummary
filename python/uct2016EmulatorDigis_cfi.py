@@ -8,5 +8,7 @@ uct2016EmulatorDigis = cms.EDProducer('L1TCaloSummary',
                                       useECALLUT = cms.bool(True),
                                       useHCALLUT = cms.bool(True),
                                       useHFLUT = cms.bool(True),
-                                      verbose = cms.bool(False)
+                                      verbose = cms.bool(False),
+                                      tauSeed = cms.uint32(10),
+                                      tauIsolationFactor = cms.double(0.3)
                                       )

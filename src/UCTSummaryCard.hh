@@ -36,7 +36,13 @@ public:
   const UCTObject* getHT() {return HT;}
   const UCTObject* getMHT() {return MHT;}
 
-  // More access functions
+  // More access functions  
+  void setTauSeed(uint32_t in){
+    tauSeed = in;
+  };
+  void setTauIsolationFactor(double in){
+    tauIsolationFactor = in;
+  };
 
   void print();
 
@@ -75,6 +81,9 @@ private:
 
   double sinPhi[73]; // Make one extra so caloPhi : 1-72 can be used as index directly
   double cosPhi[73];
+
+  uint32_t tauSeed;
+  float tauIsolationFactor;
 
 };
 
