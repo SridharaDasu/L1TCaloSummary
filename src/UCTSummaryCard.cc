@@ -210,31 +210,37 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     uint32_t tauET = centralET;
     uint32_t isolation = et3x3;
     int neighborMatchCount = 0;
+    //check to see if we are on the edge of the calorimeter
     if(!g.isEdgeTower(centralHitTower)) {
+      //Check to see if the neighbor regions are tau like and if central ET is greater
+      //if region is tau like and a neighbor AND with less energy, set it to 0.
       if(g.areNeighbors(centralHitTower, northHitTower) && northIsTauLike && centralET >= northET) {
 	tauET += northET;
 	neighborMatchCount++;
       }
-      else if(northIsTauLike && centralET < northET){
+      else if(g.areNeighbors(centralHitTower, northHitTower) && northIsTauLike && centralET < northET){
 	tauET = 0;
       }
       if(g.areNeighbors(centralHitTower, southHitTower) && southIsTauLike && centralET > southET) {
 	tauET += southET;
 	neighborMatchCount++;
       }
-      else if(southIsTauLike && centralET <= southET){
+      else if(g.areNeighbors(centralHitTower, southHitTower) && southIsTauLike && centralET <= southET){
 	tauET = 0;
       }
       if(g.areNeighbors(centralHitTower, westHitTower) && westIsTauLike && centralET >= westET) {
 	tauET += westET;
 	neighborMatchCount++;
       }      
-      else if(westIsTauLike && centralET < westET){
+      else if(g.areNeighbors(centralHitTower, westHitTower) && westIsTauLike && centralET < westET){
 	tauET = 0;
       }
       if(g.areNeighbors(centralHitTower, eastHitTower) && eastIsTauLike && centralET > eastET) {
 	tauET += eastET;
 	neighborMatchCount++;
+      }
+      else if(g.areNeighbors(centralHitTower, eastHitTower) && eastIsTauLike && centralET <= eastET){
+	tauET = 0;
       }
       if(neighborMatchCount == 2) {
 	std::cerr << "Triple-region Tau - yuck :(" << std::endl;
