@@ -57,6 +57,7 @@
 
 #include "L1Trigger/L1TCaloLayer1/src/L1TCaloLayer1FetchLUTs.hh"
 
+using namespace l1tcalo;
 using namespace l1extra;
 using namespace std;
 

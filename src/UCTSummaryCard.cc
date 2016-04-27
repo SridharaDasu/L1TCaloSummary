@@ -18,6 +18,8 @@ using namespace std;
 
 #include "L1Trigger/L1TCaloLayer1/src/UCTGeometry.hh"
 
+using namespace l1tcalo;
+
 UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in) : uctLayer1(in) {
   // FIXME: phi = 0 is probably not correct
   sinPhi[0] = 0;
@@ -39,7 +41,9 @@ bool UCTSummaryCard::process() {
   int sumEy = 0;
   int sumHx = 0;
   int sumHy = 0;
-  for(int iEta = -NRegionsInCard; iEta <= NRegionsInCard; iEta++) {
+  int etaMin = -NRegionsInCard;
+  int etaMax = NRegionsInCard;
+  for(int iEta = etaMin; iEta <= etaMax; iEta++) {
     if(iEta == 0) continue;
     for(uint32_t iPhi = 1; iPhi <= MaxUCTRegionsPhi; iPhi++) {
       UCTRegionIndex regionIndex(iEta, iPhi);
@@ -47,7 +51,7 @@ bool UCTSummaryCard::process() {
       const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
       uint32_t et = uctRegion->et();
       int hitCaloPhi = uctRegion->hitCaloPhi();
-      if(iEta == -NRegionsInCard) {
+      if(iEta == etaMin) {
 	sumEx += ((int) ((double) et) * cosPhi[hitCaloPhi]);
 	sumEy += ((int) ((double) et) * sinPhi[hitCaloPhi]);
 	etValue += et;
