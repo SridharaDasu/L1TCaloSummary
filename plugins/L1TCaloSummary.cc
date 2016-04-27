@@ -188,10 +188,6 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   pumLUT[15] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT15");
   pumLUT[16] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT16");
   pumLUT[17] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT17");
-  pumLUT[18] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT18");
-  pumLUT[19] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT19");
-  pumLUT[20] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT20");
-  pumLUT[21] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT21");
 }
 
 L1TCaloSummary::~L1TCaloSummary() {
