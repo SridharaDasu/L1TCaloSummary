@@ -23,13 +23,13 @@ scram b -j 8
 Unit test for this directory can be run using:
 
 ```bash
-pushd $CMSSW_BASE/src/L1Trigger/L1TCaloSummary/tests;scram b runtests;popd
+pushd $CMSSW_BASE/src/L1Trigger/L1TCaloSummary/test;scram b runtests;popd
 ```
 
 The CMSSW producer can be excercised using:
 
 ```bash
-pushd $CMSSW_BASE/src/L1Trigger/L1TCaloSummary/tests
+pushd $CMSSW_BASE/src/L1Trigger/L1TCaloSummary/test
 cmsRun testL1TCaloSummary.py runNumber=260627 dataStream=/JetHT/Run2015D-v1/RAW
 popd
 ```
