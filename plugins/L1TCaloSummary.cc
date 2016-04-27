@@ -95,6 +95,8 @@ private:
   std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
   std::vector< std::vector< uint32_t > > hfLUT;
 
+  std::vector< std::vector< uint32_t > > pumLUT;
+
   std::vector< UCTTower* > twrList;
 
   bool useLSB;
@@ -102,6 +104,10 @@ private:
   bool useECALLUT;
   bool useHCALLUT;
   bool useHFLUT;
+
+  uint32_t tauSeed;
+  float tauIsolationFactor;
+
   bool verbose;
 
   UCTLayer1 *layer1;
@@ -128,11 +134,14 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hfLUT(12, std::vector < uint32_t >(256)),
+  pumLUT(18, std::vector < uint32_t >(22)),
   useLSB(iConfig.getParameter<bool>("useLSB")),
   useCalib(iConfig.getParameter<bool>("useCalib")),
   useECALLUT(iConfig.getParameter<bool>("useECALLUT")),
   useHCALLUT(iConfig.getParameter<bool>("useHCALLUT")),
   useHFLUT(iConfig.getParameter<bool>("useHFLUT")),
+  tauSeed(iConfig.getParameter<unsigned int>("tauSeed")),
+  tauIsolationFactor(iConfig.getParameter<double>("tauIsolationFactor")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
   produces< L1CaloRegionCollection >();
@@ -146,6 +155,8 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   produces< L1EtMissParticleCollection >( "MHT" ) ;
   layer1 = new UCTLayer1;
   summaryCard = new UCTSummaryCard(layer1);
+  summaryCard->setTauSeed(tauSeed);
+  summaryCard->setTauIsolationFactor(tauIsolationFactor);
   vector<UCTCrate*> crates = layer1->getCrates();
   for(uint32_t crt = 0; crt < crates.size(); crt++) {
     vector<UCTCard*> cards = crates[crt]->getCards();
@@ -159,8 +170,29 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
       }
     }
   }
+  pumLUT[ 0] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT00");
+  pumLUT[ 1] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT01");
+  pumLUT[ 2] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT02");
+  pumLUT[ 3] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT03");
+  pumLUT[ 4] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT04");
+  pumLUT[ 5] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT05");
+  pumLUT[ 6] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT06");
+  pumLUT[ 7] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT07");
+  pumLUT[ 8] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT08");
+  pumLUT[ 9] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT09");
+  pumLUT[10] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT10");
+  pumLUT[11] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT11");
+  pumLUT[12] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT12");
+  pumLUT[13] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT13");
+  pumLUT[14] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT14");
+  pumLUT[15] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT15");
+  pumLUT[16] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT16");
+  pumLUT[17] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT17");
+  pumLUT[18] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT18");
+  pumLUT[19] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT19");
+  pumLUT[20] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT20");
+  pumLUT[21] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT21");
 }
-
 
 L1TCaloSummary::~L1TCaloSummary() {
   if(layer1 != 0) delete layer1;
@@ -426,6 +458,7 @@ L1TCaloSummary::endJob() {
 }
 
 // ------------ method called when starting to processes a run  ------------
+
 void
 L1TCaloSummary::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {
   if(!L1TCaloLayer1FetchLUTs(iSetup, ecalLUT, hcalLUT, hfLUT, useLSB, useCalib, useECALLUT, useHCALLUT, useHFLUT)) {
@@ -435,7 +468,7 @@ L1TCaloSummary::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup) {
     twrList[twr]->setECALLUT(&ecalLUT);
     twrList[twr]->setHCALLUT(&hcalLUT);
     twrList[twr]->setHFLUT(&hfLUT);
-    }
+  }
 }
  
 // ------------ method called when ending the processing of a run  ------------
