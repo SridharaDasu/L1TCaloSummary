@@ -3,7 +3,7 @@
 
 #include "L1Trigger/L1TCaloLayer1/src/UCTGeometry.hh"
 
-class UCTGeometryExtended : UCTGeometry {
+class UCTGeometryExtended : public UCTGeometry {
 
 public:
 

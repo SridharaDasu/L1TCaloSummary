@@ -88,7 +88,9 @@ int main(int argc, char** argv) {
 
   UCTLayer1 uctLayer1;
 
-  UCTSummaryCard uctLayer2(&uctLayer1);
+  std::vector< std::vector< uint32_t > > l(18, std::vector< uint32_t > (22));
+
+  UCTSummaryCard uctLayer2(&uctLayer1, &l);
 
   // Event loop - use 1M events to test
   for(int event = 0; event < nEvents; event++) {

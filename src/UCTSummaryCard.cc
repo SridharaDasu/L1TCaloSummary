@@ -20,7 +20,9 @@ using namespace std;
 
 using namespace l1tcalo;
 
-UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in) : uctLayer1(in) {
+UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< uint32_t > > *l) : 
+  uctLayer1(in), pumLUT(l) 
+{
   //initial thresholds (should be set by plugin, putting initial values for sanity)
   tauSeed = 10;
   tauIsolationFactor = 0.3;
@@ -47,6 +49,22 @@ bool UCTSummaryCard::process() {
   int sumHy = 0;
   int etaMin = -NRegionsInCard;
   int etaMax = NRegionsInCard;
+  // Determine pumLevel
+  pumLevel = 0;
+  for(int iEta = etaMin; iEta <= etaMax; iEta++) {
+    if(iEta == 0) continue;
+    for(uint32_t iPhi = 1; iPhi <= MaxUCTRegionsPhi; iPhi++) {
+      UCTRegionIndex regionIndex(iEta, iPhi);
+      const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
+      uint32_t et = uctRegion->et();
+      if(et > 0) pumLevel++;
+    }
+  }
+  pumBin = pumLevel;
+  if(pumLevel > 17) pumBin = 17; // Max PUM value
+  // We walk the eta-phi plane looping over all regions.
+  // to make global objects like TotalET, HT, MET, MHT
+  // For compact objects we use processRegion(regionIndex)
   for(int iEta = etaMin; iEta <= etaMax; iEta++) {
     if(iEta == 0) continue;
     for(uint32_t iPhi = 1; iPhi <= MaxUCTRegionsPhi; iPhi++) {
@@ -94,6 +112,12 @@ bool UCTSummaryCard::process() {
 
 bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
 
+  // We process the region looking at nearest neighbor data
+  // We should never need beyond nearest-neighbor for most
+  // objects - eGamma, tau or jet
+
+  UCTGeometryExtended g;
+
   const UCTRegion* cRegion(uctLayer1->getRegion(center));
   uint32_t centralET = cRegion->et();
   UCTTowerIndex centralHitTower = cRegion->hitTowerIndex();
@@ -101,8 +125,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   bool centralIsEGammaLike = cRegion->isEGammaLike();
   int hitCaloEta = cRegion->hitCaloEta();
   int hitCaloPhi = cRegion->hitCaloPhi();
-
-  UCTGeometryExtended g;
+  uint32_t pileup = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(center)];
 
   UCTRegionIndex northIndex = g.getUCTRegionNorth(center);
   const UCTRegion* northRegion(uctLayer1->getRegion(northIndex));
@@ -115,6 +138,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     northHitTower = northRegion->hitTowerIndex();
     northIsTauLike = northRegion->isTauLike();
     northIsEGammaLike = northRegion->isEGammaLike();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(northIndex)];
   }
 
   UCTRegionIndex southIndex = g.getUCTRegionSouth(center);
@@ -128,6 +152,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     southHitTower = southRegion->hitTowerIndex();
     southIsTauLike = southRegion->isTauLike();
     southIsEGammaLike = southRegion->isEGammaLike();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(southIndex)];
   }
 
   UCTRegionIndex eastIndex = g.getUCTRegionEast(center);
@@ -141,6 +166,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     eastHitTower = eastRegion->hitTowerIndex();
     eastIsTauLike = eastRegion->isTauLike();
     eastIsEGammaLike = eastRegion->isEGammaLike();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(eastIndex)];
   }
 
   UCTRegionIndex westIndex = g.getUCTRegionWest(center);
@@ -154,6 +180,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     westHitTower = westRegion->hitTowerIndex();
     westIsTauLike = westRegion->isTauLike();
     westIsEGammaLike = westRegion->isEGammaLike();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(westIndex)];
   }
 
   UCTRegionIndex neIndex = g.getUCTRegionNE(center);
@@ -161,6 +188,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t neET = 0;
   if(neRegion != NULL) {
     neET = neRegion->et();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(neIndex)];
   }
 
   UCTRegionIndex nwIndex = g.getUCTRegionNW(center);
@@ -168,6 +196,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t nwET = 0;
   if(nwRegion != NULL) {
     nwET = nwRegion->et();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(nwIndex)];
   }
 
   UCTRegionIndex seIndex = g.getUCTRegionSE(center);
@@ -175,6 +204,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t seET = 0;
   if(seRegion != NULL) {
     seET = seRegion->et();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(seIndex)];
   }
 
   UCTRegionIndex swIndex = g.getUCTRegionSW(center);
@@ -182,11 +212,10 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t swET = 0;
   if(swRegion != NULL) {
     swET = swRegion->et();
+    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(swIndex)];
   }
 
   uint32_t et3x3 = centralET + northET + nwET + westET + swET + southET + seET + eastET + neET;
-
-  uint32_t pileup = 0; // FIXME: This should be looked up for the region using the calculated PUM 
 
   uint32_t JetSeed = 10; // FIXME: This should be a configurable parameter
 

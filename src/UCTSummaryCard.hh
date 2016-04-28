@@ -12,7 +12,7 @@ class UCTObject;
 class UCTSummaryCard {
 public:
 
-  UCTSummaryCard(const UCTLayer1* in);
+  UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< uint32_t > > *l);
 
   virtual ~UCTSummaryCard();
 
@@ -43,6 +43,11 @@ public:
   void setTauIsolationFactor(double in){
     tauIsolationFactor = in;
   };
+
+  bool setPUMLUT(const std::vector< std::vector< uint32_t > > *l) {
+    pumLUT = l;
+    return true;
+  }
 
   void print();
 
@@ -84,6 +89,12 @@ private:
 
   uint32_t tauSeed;
   float tauIsolationFactor;
+
+  // Pileup subtraction LUT based on multiplicity of regions > threshold (presently == 0)
+
+  uint32_t pumLevel;
+  uint32_t pumBin;
+  const std::vector< std::vector< uint32_t > > *pumLUT;
 
 };
 

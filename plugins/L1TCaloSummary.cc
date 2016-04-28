@@ -144,32 +144,6 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   tauIsolationFactor(iConfig.getParameter<double>("tauIsolationFactor")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
-  produces< L1CaloRegionCollection >();
-  produces< L1EmParticleCollection >( "Isolated" ) ;
-  produces< L1EmParticleCollection >( "NonIsolated" ) ;
-  produces< L1JetParticleCollection >( "Central" ) ;
-  produces< L1JetParticleCollection >( "Forward" ) ;
-  produces< L1JetParticleCollection >( "Tau" ) ;
-  produces< L1JetParticleCollection >( "IsoTau" ) ;
-  produces< L1EtMissParticleCollection >( "MET" ) ;
-  produces< L1EtMissParticleCollection >( "MHT" ) ;
-  layer1 = new UCTLayer1;
-  summaryCard = new UCTSummaryCard(layer1);
-  summaryCard->setTauSeed(tauSeed);
-  summaryCard->setTauIsolationFactor(tauIsolationFactor);
-  vector<UCTCrate*> crates = layer1->getCrates();
-  for(uint32_t crt = 0; crt < crates.size(); crt++) {
-    vector<UCTCard*> cards = crates[crt]->getCards();
-    for(uint32_t crd = 0; crd < cards.size(); crd++) {
-      vector<UCTRegion*> regions = cards[crd]->getRegions();
-      for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
-	vector<UCTTower*> towers = regions[rgn]->getTowers();
-	for(uint32_t twr = 0; twr < towers.size(); twr++) {
-	  twrList.push_back(towers[twr]);
-	}
-      }
-    }
-  }
   pumLUT[ 0] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT00");
   pumLUT[ 1] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT01");
   pumLUT[ 2] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT02");
@@ -188,6 +162,32 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   pumLUT[15] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT15");
   pumLUT[16] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT16");
   pumLUT[17] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT17");
+  produces< L1CaloRegionCollection >();
+  produces< L1EmParticleCollection >( "Isolated" ) ;
+  produces< L1EmParticleCollection >( "NonIsolated" ) ;
+  produces< L1JetParticleCollection >( "Central" ) ;
+  produces< L1JetParticleCollection >( "Forward" ) ;
+  produces< L1JetParticleCollection >( "Tau" ) ;
+  produces< L1JetParticleCollection >( "IsoTau" ) ;
+  produces< L1EtMissParticleCollection >( "MET" ) ;
+  produces< L1EtMissParticleCollection >( "MHT" ) ;
+  layer1 = new UCTLayer1;
+  summaryCard = new UCTSummaryCard(layer1, &pumLUT);
+  summaryCard->setTauSeed(tauSeed);
+  summaryCard->setTauIsolationFactor(tauIsolationFactor);
+  vector<UCTCrate*> crates = layer1->getCrates();
+  for(uint32_t crt = 0; crt < crates.size(); crt++) {
+    vector<UCTCard*> cards = crates[crt]->getCards();
+    for(uint32_t crd = 0; crd < cards.size(); crd++) {
+      vector<UCTRegion*> regions = cards[crd]->getRegions();
+      for(uint32_t rgn = 0; rgn < regions.size(); rgn++) {
+	vector<UCTTower*> towers = regions[rgn]->getTowers();
+	for(uint32_t twr = 0; twr < towers.size(); twr++) {
+	  twrList.push_back(towers[twr]);
+	}
+      }
+    }
+  }
 }
 
 L1TCaloSummary::~L1TCaloSummary() {
