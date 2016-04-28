@@ -7,8 +7,8 @@ It is a playpen for various tests.
 Installation:
 
 ```bash
-cmsrel CMSSW_8_0_5
-cd CMSSW_8_0_5/src
+cmsrel CMSSW_8_0_6
+cd CMSSW_8_0_6/src
 cmsenv
 git cms-init
 git remote add cms-l1t-offline git@github.com:cms-l1t-offline/cmssw.git
