@@ -96,9 +96,9 @@ UCTRegionIndex UCTGeometryExtended::getUCTRegionSW(UCTRegionIndex center) {
 }
 
 bool UCTGeometryExtended::areNeighbors(UCTTowerIndex a, UCTTowerIndex b) {
-  int diffEta = std::abs(a.first - b.first);
-  int diffPhi = std::abs(a.second - b.second);
-  if(diffEta <= 1 && diffPhi < 1) return true;
+  int diffEta = std::abs(a.first - b.first);                 // Note eta values run -28 to +28, 0 excluded
+  int diffPhi = std::abs(((int) a.second - (int) b.second)); // Note phi values run 1-72, with 72 & 1 as neighbors
+  if((diffEta <= 1 || (a.first == -1 && b.first == 1) || (a.first == 1 && b.first == -1)) && (diffPhi <= 1 || diffPhi == 71)) return true;
   return false;
 }
 
