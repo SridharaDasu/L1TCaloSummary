@@ -51,23 +51,23 @@ bool UCTSummaryCard::process() {
   int etaMax = NRegionsInCard;
   // Determine pumLevel
   pumLevel = 0;
-  for(int iEta = etaMin; iEta <= etaMax; iEta++) {
-    if(iEta == 0) continue;
-    for(uint32_t iPhi = 1; iPhi <= MaxUCTRegionsPhi; iPhi++) {
+  for(int iEta = etaMin; iEta <= etaMax; iEta++) { // Note that region eta ranges from -7 to +7
+    if(iEta == 0) continue;                        // and, eta == 0 is illegal
+    for(uint32_t iPhi = 0; iPhi < MaxUCTRegionsPhi; iPhi++) { // Note that phi ranges from 0 to 17
       UCTRegionIndex regionIndex(iEta, iPhi);
       const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
       uint32_t et = uctRegion->et();
       if(et > 0) pumLevel++;
     }
   }
-  pumBin = pumLevel;
+  pumBin = floor(pumLevel/22);
   if(pumLevel > 17) pumBin = 17; // Max PUM value
   // We walk the eta-phi plane looping over all regions.
   // to make global objects like TotalET, HT, MET, MHT
   // For compact objects we use processRegion(regionIndex)
   for(int iEta = etaMin; iEta <= etaMax; iEta++) {
     if(iEta == 0) continue;
-    for(uint32_t iPhi = 1; iPhi <= MaxUCTRegionsPhi; iPhi++) {
+    for(uint32_t iPhi = 0; iPhi < MaxUCTRegionsPhi; iPhi++) {
       UCTRegionIndex regionIndex(iEta, iPhi);
       processRegion(regionIndex);
       const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
