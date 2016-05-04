@@ -395,6 +395,8 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   phi = g.getUCTTowerPhi(met->iPhi());
   metCands->push_back(L1EtMissParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EtMissParticle::kMET, totET));
 
+  
+
   const UCTObject* ht = summaryCard->getHT();
   pt = ((double) ht->et()) * caloScaleFactor;
   double totHT = pt;
