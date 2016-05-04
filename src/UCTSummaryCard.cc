@@ -73,7 +73,6 @@ bool UCTSummaryCard::process() {
       const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
       uint32_t et = uctRegion->et();
       int hitCaloPhi = uctRegion->hitCaloPhi();
-      //      if(iEta == etaMin) {
       sumEx += ((int) ((double) et) * cosPhi[hitCaloPhi]);
       sumEy += ((int) ((double) et) * sinPhi[hitCaloPhi]);
       etValue += et;
@@ -81,7 +80,6 @@ bool UCTSummaryCard::process() {
 	sumHx += ((int) ((double) et) * cosPhi[hitCaloPhi]);
 	sumHy += ((int) ((double) et) * sinPhi[hitCaloPhi]);
 	htValue += et;
-	//}
       }
     }
   }
