@@ -48,13 +48,11 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 
 # To get L1 CaloParams
-process.load('L1Trigger.L1TCalorimeter.caloStage2Params_cfi')
+process.load('L1Trigger.L1TCalorimeter.caloStage2Params_2016_v2_1_cfi')
 # To get CaloTPGTranscoder
 process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
 
 process.HcalTPGCoderULUT.LUTGenerationMode = cms.bool(False)
-
-process.load("Configuration.Geometry.GeometryExtended2016Reco_cff")
 
 process.es_pool = cms.ESSource("PoolDBESSource",
      process.CondDBSetup,
