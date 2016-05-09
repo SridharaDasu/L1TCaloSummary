@@ -20,7 +20,7 @@ using namespace std;
 
 using namespace l1tcalo;
 
-UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< uint32_t > > *l) : 
+UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< double > > *l) : 
   uctLayer1(in), pumLUT(l) 
 {
   //initial thresholds (should be set by plugin, putting initial values for sanity)
@@ -123,7 +123,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   bool centralIsEGammaLike = cRegion->isEGammaLike();
   int hitCaloEta = cRegion->hitCaloEta();
   int hitCaloPhi = cRegion->hitCaloPhi();
-  uint32_t pileup = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(center)];
+  float pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(center)];
+  uint32_t pileup = (uint32_t) round(2 * pileupIn);
 
   UCTRegionIndex northIndex = g.getUCTRegionNorth(center);
   const UCTRegion* northRegion(uctLayer1->getRegion(northIndex));
@@ -136,7 +137,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     northHitTower = northRegion->hitTowerIndex();
     northIsTauLike = northRegion->isTauLike();
     northIsEGammaLike = northRegion->isEGammaLike();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(northIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(northIndex)];
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   UCTRegionIndex southIndex = g.getUCTRegionSouth(center);
@@ -150,7 +152,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     southHitTower = southRegion->hitTowerIndex();
     southIsTauLike = southRegion->isTauLike();
     southIsEGammaLike = southRegion->isEGammaLike();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(southIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(southIndex)];
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   UCTRegionIndex eastIndex = g.getUCTRegionEast(center);
@@ -164,7 +167,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     eastHitTower = eastRegion->hitTowerIndex();
     eastIsTauLike = eastRegion->isTauLike();
     eastIsEGammaLike = eastRegion->isEGammaLike();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(eastIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(eastIndex)];
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   UCTRegionIndex westIndex = g.getUCTRegionWest(center);
@@ -178,7 +182,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
     westHitTower = westRegion->hitTowerIndex();
     westIsTauLike = westRegion->isTauLike();
     westIsEGammaLike = westRegion->isEGammaLike();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(westIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(westIndex)];
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   UCTRegionIndex neIndex = g.getUCTRegionNE(center);
@@ -186,7 +191,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t neET = 0;
   if(neRegion != NULL) {
     neET = neRegion->et();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(neIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(neIndex)]; 
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   UCTRegionIndex nwIndex = g.getUCTRegionNW(center);
@@ -194,7 +200,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t nwET = 0;
   if(nwRegion != NULL) {
     nwET = nwRegion->et();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(nwIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(nwIndex)];
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   UCTRegionIndex seIndex = g.getUCTRegionSE(center);
@@ -202,7 +209,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t seET = 0;
   if(seRegion != NULL) {
     seET = seRegion->et();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(seIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(seIndex)];
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   UCTRegionIndex swIndex = g.getUCTRegionSW(center);
@@ -210,7 +218,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   uint32_t swET = 0;
   if(swRegion != NULL) {
     swET = swRegion->et();
-    pileup += (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(swIndex)];
+    pileupIn = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(swIndex)];
+    pileup += (uint32_t) round(2 * pileupIn);
   }
 
   uint32_t et3x3 = centralET + northET + nwET + westET + swET + southET + seET + eastET + neET;

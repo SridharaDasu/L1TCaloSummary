@@ -95,7 +95,7 @@ private:
   std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
   std::vector< std::vector< uint32_t > > hfLUT;
 
-  std::vector< std::vector< uint32_t > > pumLUT;
+  std::vector< std::vector< double > > pumLUT;
 
   std::vector< UCTTower* > twrList;
 
@@ -134,7 +134,7 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hfLUT(12, std::vector < uint32_t >(256)),
-  pumLUT(18, std::vector < uint32_t >(22)),
+  pumLUT(18, std::vector < double >(22)),
   useLSB(iConfig.getParameter<bool>("useLSB")),
   useCalib(iConfig.getParameter<bool>("useCalib")),
   useECALLUT(iConfig.getParameter<bool>("useECALLUT")),
@@ -144,24 +144,24 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   tauIsolationFactor(iConfig.getParameter<double>("tauIsolationFactor")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
-  pumLUT[ 0] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT00");
-  pumLUT[ 1] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT01");
-  pumLUT[ 2] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT02");
-  pumLUT[ 3] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT03");
-  pumLUT[ 4] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT04");
-  pumLUT[ 5] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT05");
-  pumLUT[ 6] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT06");
-  pumLUT[ 7] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT07");
-  pumLUT[ 8] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT08");
-  pumLUT[ 9] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT09");
-  pumLUT[10] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT10");
-  pumLUT[11] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT11");
-  pumLUT[12] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT12");
-  pumLUT[13] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT13");
-  pumLUT[14] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT14");
-  pumLUT[15] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT15");
-  pumLUT[16] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT16");
-  pumLUT[17] = iConfig.getParameter<std::vector < uint32_t > >("pumLUT17");
+  pumLUT[ 0] = iConfig.getParameter<std::vector < double > >("pumLUT00");
+  pumLUT[ 1] = iConfig.getParameter<std::vector < double > >("pumLUT01");
+  pumLUT[ 2] = iConfig.getParameter<std::vector < double > >("pumLUT02");
+  pumLUT[ 3] = iConfig.getParameter<std::vector < double > >("pumLUT03");
+  pumLUT[ 4] = iConfig.getParameter<std::vector < double > >("pumLUT04");
+  pumLUT[ 5] = iConfig.getParameter<std::vector < double > >("pumLUT05");
+  pumLUT[ 6] = iConfig.getParameter<std::vector < double > >("pumLUT06");
+  pumLUT[ 7] = iConfig.getParameter<std::vector < double > >("pumLUT07");
+  pumLUT[ 8] = iConfig.getParameter<std::vector < double > >("pumLUT08");
+  pumLUT[ 9] = iConfig.getParameter<std::vector < double > >("pumLUT09");
+  pumLUT[10] = iConfig.getParameter<std::vector < double > >("pumLUT10");
+  pumLUT[11] = iConfig.getParameter<std::vector < double > >("pumLUT11");
+  pumLUT[12] = iConfig.getParameter<std::vector < double > >("pumLUT12");
+  pumLUT[13] = iConfig.getParameter<std::vector < double > >("pumLUT13");
+  pumLUT[14] = iConfig.getParameter<std::vector < double > >("pumLUT14");
+  pumLUT[15] = iConfig.getParameter<std::vector < double > >("pumLUT15");
+  pumLUT[16] = iConfig.getParameter<std::vector < double > >("pumLUT16");
+  pumLUT[17] = iConfig.getParameter<std::vector < double > >("pumLUT17");
   produces< L1CaloRegionCollection >();
   produces< L1EmParticleCollection >( "Isolated" ) ;
   produces< L1EmParticleCollection >( "NonIsolated" ) ;
