@@ -341,6 +341,8 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
       double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
       if(et3x3 > (eGammaET + (uint32_t) round(pileup)) )
 	 isolation = et3x3 - eGammaET - (uint32_t) round(pileup);
+      else 
+	isolation = 0;
 
       if(isolation < ((uint32_t) (IsolationFactor * (double) eGammaET))) {
 	isoEMObjs.push_back(new UCTObject(UCTObject::isoEGamma, eGammaET, hitCaloEta, hitCaloPhi, (uint32_t) round(pileup), isolation, et3x3));
