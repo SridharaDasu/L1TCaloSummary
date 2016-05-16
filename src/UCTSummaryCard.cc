@@ -65,13 +65,15 @@ bool UCTSummaryCard::process() {
   // We walk the eta-phi plane looping over all regions.
   // to make global objects like TotalET, HT, MET, MHT
   // For compact objects we use processRegion(regionIndex)
+  uint32_t pileup =0 ;
   for(int iEta = etaMin; iEta <= etaMax; iEta++) {
     if(iEta == 0) continue;
     for(uint32_t iPhi = 0; iPhi < MaxUCTRegionsPhi; iPhi++) {
       UCTRegionIndex regionIndex(iEta, iPhi);
       processRegion(regionIndex);
       const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
-      uint32_t et = uctRegion->et();
+      pileup+= (*pumLUT)[pumBin][iPhi];
+      uint32_t et = uctRegion->et() - pileup;
       int hitCaloPhi = uctRegion->hitCaloPhi();
       sumEx += ((int) (((double) et) * cosPhi[hitCaloPhi]));
       sumEy += ((int) (((double) et) * sinPhi[hitCaloPhi]));
