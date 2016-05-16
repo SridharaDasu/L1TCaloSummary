@@ -317,17 +317,29 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
 	eGammaET += northET;
 	neighborMatchCount++;
       }
+      else if(g.areNeighbors(centralHitTower, northHitTower) && northIsEGammaLike && centralET < northET){
+        eGammaET = 0;
+      }
       if(g.areNeighbors(centralHitTower, southHitTower) && southIsEGammaLike && centralET > southET) {
 	eGammaET += southET;
 	neighborMatchCount++;
+      }
+      else if(g.areNeighbors(centralHitTower, southHitTower) && southIsEGammaLike && centralET <= southET){
+        eGammaET = 0;
       }
       if(g.areNeighbors(centralHitTower, westHitTower) && westIsEGammaLike && centralET >= westET) {
 	eGammaET += westET;
 	neighborMatchCount++;
       }
+      else if(g.areNeighbors(centralHitTower, westHitTower) && westIsEGammaLike && centralET < westET){
+        eGammaET = 0;
+      }
       if(g.areNeighbors(centralHitTower, eastHitTower) && eastIsEGammaLike && centralET > eastET) {
 	eGammaET += eastET;
 	neighborMatchCount++;
+      }
+      else if(g.areNeighbors(centralHitTower, eastHitTower) && eastIsEGammaLike && centralET <= eastET){
+        eGammaET = 0;
       }
       if(neighborMatchCount == 2) {
 	std::cerr << "Triple-region eGamma - yuck :(" << std::endl;
