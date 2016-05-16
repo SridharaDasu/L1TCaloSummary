@@ -12,7 +12,7 @@ class UCTObject;
 class UCTSummaryCard {
 public:
 
-  UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< double > > *l);
+  UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< uint32_t > > *l);
 
   virtual ~UCTSummaryCard();
 
@@ -44,7 +44,7 @@ public:
     tauIsolationFactor = in;
   };
 
-  bool setPUMLUT(const std::vector< std::vector< double > > *l) {
+  bool setPUMLUT(const std::vector< std::vector< uint32_t > > *l) {
     pumLUT = l;
     return true;
   }
@@ -94,7 +94,7 @@ private:
 
   uint32_t pumLevel;
   uint32_t pumBin;
-  const std::vector< std::vector< double > > *pumLUT;
+  const std::vector< std::vector< uint32_t > > *pumLUT;
 
 };
 

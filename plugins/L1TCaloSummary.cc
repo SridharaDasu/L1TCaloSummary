@@ -95,7 +95,7 @@ private:
   std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
   std::vector< std::vector< uint32_t > > hfLUT;
 
-  std::vector< std::vector< double > > pumLUT;
+  std::vector< std::vector< uint32_t > > pumLUT;
 
   std::vector< UCTTower* > twrList;
 
@@ -104,6 +104,8 @@ private:
   bool useECALLUT;
   bool useHCALLUT;
   bool useHFLUT;
+
+  double caloScaleFactor;
 
   uint32_t tauSeed;
   float tauIsolationFactor;
@@ -134,34 +136,26 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hfLUT(12, std::vector < uint32_t >(256)),
-  pumLUT(18, std::vector < double >(22)),
+  pumLUT(18, std::vector < uint32_t >(22)),
   useLSB(iConfig.getParameter<bool>("useLSB")),
   useCalib(iConfig.getParameter<bool>("useCalib")),
   useECALLUT(iConfig.getParameter<bool>("useECALLUT")),
   useHCALLUT(iConfig.getParameter<bool>("useHCALLUT")),
   useHFLUT(iConfig.getParameter<bool>("useHFLUT")),
+  caloScaleFactor(iConfig.getParameter<double>("caloScaleFactor")),
   tauSeed(iConfig.getParameter<unsigned int>("tauSeed")),
   tauIsolationFactor(iConfig.getParameter<double>("tauIsolationFactor")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
-  pumLUT[ 0] = iConfig.getParameter<std::vector < double > >("pumLUT00");
-  pumLUT[ 1] = iConfig.getParameter<std::vector < double > >("pumLUT01");
-  pumLUT[ 2] = iConfig.getParameter<std::vector < double > >("pumLUT02");
-  pumLUT[ 3] = iConfig.getParameter<std::vector < double > >("pumLUT03");
-  pumLUT[ 4] = iConfig.getParameter<std::vector < double > >("pumLUT04");
-  pumLUT[ 5] = iConfig.getParameter<std::vector < double > >("pumLUT05");
-  pumLUT[ 6] = iConfig.getParameter<std::vector < double > >("pumLUT06");
-  pumLUT[ 7] = iConfig.getParameter<std::vector < double > >("pumLUT07");
-  pumLUT[ 8] = iConfig.getParameter<std::vector < double > >("pumLUT08");
-  pumLUT[ 9] = iConfig.getParameter<std::vector < double > >("pumLUT09");
-  pumLUT[10] = iConfig.getParameter<std::vector < double > >("pumLUT10");
-  pumLUT[11] = iConfig.getParameter<std::vector < double > >("pumLUT11");
-  pumLUT[12] = iConfig.getParameter<std::vector < double > >("pumLUT12");
-  pumLUT[13] = iConfig.getParameter<std::vector < double > >("pumLUT13");
-  pumLUT[14] = iConfig.getParameter<std::vector < double > >("pumLUT14");
-  pumLUT[15] = iConfig.getParameter<std::vector < double > >("pumLUT15");
-  pumLUT[16] = iConfig.getParameter<std::vector < double > >("pumLUT16");
-  pumLUT[17] = iConfig.getParameter<std::vector < double > >("pumLUT17");
+  std::vector<double> pumLUTData;
+  char pumLUTString[10];
+  for(uint32_t pumBin = 0; pumBin < 18; pumBin++) {
+    sprintf(pumLUTString, "pumLUT%2.2d", pumBin);
+    pumLUTData = iConfig.getParameter<std::vector < double > >(pumLUTString);
+    for(uint32_t iEta = 0; iEta < pumLUTData.size(); iEta++) {
+      pumLUT[pumBin][iEta] = (uint32_t) round(pumLUTData[iEta] / caloScaleFactor);
+    }
+  }
   produces< L1CaloRegionCollection >();
   produces< L1EmParticleCollection >( "Isolated" ) ;
   produces< L1EmParticleCollection >( "NonIsolated" ) ;

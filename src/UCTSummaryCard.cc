@@ -20,7 +20,7 @@ using namespace std;
 
 using namespace l1tcalo;
 
-UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< double > > *l) : 
+UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vector< uint32_t > > *l) : 
   uctLayer1(in), pumLUT(l) 
 {
   //initial thresholds (should be set by plugin, putting initial values for sanity)
@@ -123,7 +123,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   bool centralIsEGammaLike = cRegion->isEGammaLike();
   int hitCaloEta = cRegion->hitCaloEta();
   int hitCaloPhi = cRegion->hitCaloPhi();
-  float pileup = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(center)];
+  uint32_t pileup = (*pumLUT)[pumBin][g.getGCTRegionEtaIndex(center)];
   UCTRegionIndex northIndex = g.getUCTRegionNorth(center);
   const UCTRegion* northRegion(uctLayer1->getRegion(northIndex));
   uint32_t northET = 0;
@@ -213,6 +213,7 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   }
 
   uint32_t et3x3 = centralET + northET + nwET + westET + swET + southET + seET + eastET + neET;
+  if(et3x3 > 0x3FF) et3x3 = 0x3FF; // Peg at 10-bits
 
   uint32_t JetSeed = 10; // FIXME: This should be a configurable parameter
 
@@ -221,9 +222,9 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
   if(centralET >= northET && centralET >= nwET && centralET >= westET && centralET >= swET &&
      centralET >  southET && centralET >  seET && centralET >  eastET && centralET >  neET &&
      centralET > JetSeed) {
-    //round is not good for fw, this needs to be implemented more carefully later
-    uint32_t jetET = et3x3 - (uint32_t) round(pileup);
-    centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, hitCaloEta, hitCaloPhi, (uint32_t) round(pileup), 0, et3x3));
+    uint32_t jetET = et3x3 - pileup;
+    if(et3x3 < pileup) jetET = 0;
+    centralJetObjs.push_back(new UCTObject(UCTObject::jet, jetET, hitCaloEta, hitCaloPhi, pileup, 0, et3x3));
     if(jetET > 150) {
       std::cout << "Jet (ET, eta, phi) = (" << std::dec << jetET << ", " << hitCaloEta << ", " << hitCaloPhi << ")" << std::endl;
       std::cout << "Center " << *cRegion;
@@ -286,16 +287,16 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
       }
     }
     if(tauET != 0) {
-      tauObjs.push_back(new UCTObject(UCTObject::tau, tauET, hitCaloEta, hitCaloPhi, (uint32_t) round(pileup), isolation, et3x3));
+      tauObjs.push_back(new UCTObject(UCTObject::tau, tauET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
 
       //round pileup
-      if(et3x3 > (tauET + (uint32_t) round(pileup)) )
+      if(et3x3 > (tauET + pileup) )
 	 isolation = et3x3 - tauET - pileup;
       else
 	isolation = 0;
 
       if(isolation < ((uint32_t) (tauIsolationFactor * (double) tauET))) {
-	isoTauObjs.push_back(new UCTObject(UCTObject::isoTau, tauET, hitCaloEta, hitCaloPhi, (uint32_t) round(pileup), isolation, et3x3));
+	isoTauObjs.push_back(new UCTObject(UCTObject::isoTau, tauET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
       }
     }
   }
@@ -337,15 +338,15 @@ bool UCTSummaryCard::processRegion(UCTRegionIndex center) {
       }
     }
     if(eGammaET != 0) {
-      emObjs.push_back(new UCTObject(UCTObject::eGamma, eGammaET, hitCaloEta, hitCaloPhi, (uint32_t) round(pileup), isolation, et3x3));
+      emObjs.push_back(new UCTObject(UCTObject::eGamma, eGammaET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
       double IsolationFactor = 0.3; // FIXME: This should be a configurable parameter
-      if(et3x3 > (eGammaET + (uint32_t) round(pileup)) )
-	 isolation = et3x3 - eGammaET - (uint32_t) round(pileup);
+      if(et3x3 > (eGammaET + pileup) )
+	 isolation = et3x3 - eGammaET - pileup;
       else 
 	isolation = 0;
 
       if(isolation < ((uint32_t) (IsolationFactor * (double) eGammaET))) {
-	isoEMObjs.push_back(new UCTObject(UCTObject::isoEGamma, eGammaET, hitCaloEta, hitCaloPhi, (uint32_t) round(pileup), isolation, et3x3));
+	isoEMObjs.push_back(new UCTObject(UCTObject::isoEGamma, eGammaET, hitCaloEta, hitCaloPhi, pileup, isolation, et3x3));
       }
     }
   }
