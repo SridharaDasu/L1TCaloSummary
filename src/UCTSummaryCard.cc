@@ -66,6 +66,7 @@ bool UCTSummaryCard::process() {
   // to make global objects like TotalET, HT, MET, MHT
   // For compact objects we use processRegion(regionIndex)
   uint32_t pileup =0 ;
+  uint32_t et =0;
   for(int iEta = etaMin; iEta <= etaMax; iEta++) {
     if(iEta == 0) continue;
     for(uint32_t iPhi = 0; iPhi < MaxUCTRegionsPhi; iPhi++) {
@@ -73,7 +74,9 @@ bool UCTSummaryCard::process() {
       processRegion(regionIndex);
       const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
       pileup+= (*pumLUT)[pumBin][iEta];
-      uint32_t et = uctRegion->et() - (*pumLUT)[pumBin][iEta];
+      if(uctRegion->et()>(*pumLUT)[pumBin][iEta])
+	et = uctRegion->et() - (*pumLUT)[pumBin][iEta];
+      else et =0;
       int hitCaloPhi = uctRegion->hitCaloPhi();
       sumEx += ((int) (((double) et) * cosPhi[hitCaloPhi]));
       sumEy += ((int) (((double) et) * sinPhi[hitCaloPhi]));
@@ -93,6 +96,8 @@ bool UCTSummaryCard::process() {
   uint32_t mhtValue = sqrt((double) mhtSquare);
   double mhtPhi = (atan2(sumHy, sumHx) * 180. / 3.1415927) + 180.; // FIXME - phi=0 may not be correct
   int mhtIPhi = (int) ( 72. * (mhtPhi / 360.));
+  std::cout<<"met Valye from UCTSUmmary card: "<<metValue<<" total et: "<<etValue<<std::endl;
+
 
   ET = new UCTObject(UCTObject::ET, etValue, 0, metIPhi, pileup, 0, 0);
   HT = new UCTObject(UCTObject::HT, htValue, 0, mhtIPhi, pileup, 0, 0);
