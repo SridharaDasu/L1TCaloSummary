@@ -26,13 +26,12 @@ UCTSummaryCard::UCTSummaryCard(const UCTLayer1* in, const std::vector< std::vect
   //initial thresholds (should be set by plugin, putting initial values for sanity)
   tauSeed = 10;
   tauIsolationFactor = 0.3;
-
-  // FIXME: phi = 0 is probably not correct
+  UCTGeometry g;
   sinPhi[0] = 0;
   cosPhi[0] = 1;
   for(int iPhi = 1; iPhi <= 72; iPhi++) {
-    sinPhi[iPhi] = sin((((double) iPhi / (double) 72) * 2 * 3.1415927) - 0.043633);
-    cosPhi[iPhi] = cos((((double) iPhi / (double) 72) * 2 * 3.1415927) - 0.043633);
+    sinPhi[iPhi] = sin(g.getUCTTowerPhi(iPhi));
+    cosPhi[iPhi] = cos(g.getUCTTowerPhi(iPhi));
   }
 }
 
