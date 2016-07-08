@@ -7,13 +7,13 @@ It is a playpen for various tests.
 Installation:
 
 ```bash
-cmsrel CMSSW_8_0_7
-cd CMSSW_8_0_7/src
+cmsrel CMSSW_8_0_9
+cd CMSSW_8_0_9/src
 cmsenv
 git cms-init
 git remote add cms-l1t-offline git@github.com:cms-l1t-offline/cmssw.git
 git fetch cms-l1t-offline
-git cms-merge-topic cms-l1t-offline:l1t-integration-$CMSSW_VERSION
+git cms-merge-topic cms-l1t-offline:dasu-dev-$CMSSW_VERSION
 cd L1Trigger
 git clone git@github.com:SridharaDasu/L1TCaloSummary.git
 cd ..
