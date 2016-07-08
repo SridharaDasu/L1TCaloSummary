@@ -307,11 +307,25 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	uint32_t region = regions[rgn]->getRegion();
 	bool negativeEta = regions[rgn]->isNegativeEta();
 	uint32_t rPhi = g.getUCTRegionPhiIndex(crate, card);
-	if(region < NRegionsInCard) { // We only store the Barrel and Endcap - HF has changed in the upgrade
-	  uint32_t rEta = 10 - region; // UCT region is 0-6 for B/E but GCT eta goes 0-21, 0-3 -HF, 4-10 -B/E, 11-17 +B/E, 18-21 +HF
-	  if(!negativeEta) rEta = 11 + region; // Positive eta portion is offset by 11
-	  rgnCollection->push_back(L1CaloRegion((uint16_t) regionData, (unsigned) rEta, (unsigned) rPhi, (int16_t) 0));
-	}
+	// We want to reuse L1CaloRegion and L1CaloRegionDetID
+	// We do not want to change those classes too much
+	// We want comparison to legacy for Barrel and Endcap to work transparently
+	// Noting that rEta is packed in 5 bits of L1CaloRegionDetID, we have a scheme!
+	// We store the Barrel and Endcap regions in the same location as done for RCT
+	// HF has changed in the upgrade, 6x2 HF regions instead of 4x2 in case of RCT
+	// Note that for upgrade region numbers range 0-6 for Barrel/Endcap and 7-12 for HF
+	// So, the scheme used for rEta for upgrade is:
+	// rEta= 0- 3 for -HF regions 7-10
+	// rEta= 4-10 for -B/E regions 0-6
+	// rEta=11-17 for +B/E regions 0-6
+	// rEta=18-23 for +HF regions 7-12
+	// rEta=30 for -HF region 11
+	// rEta=31 for -HF region 12
+	uint32_t rEta = 10 - region;
+	if(negativeEta && region == 11) rEta = 30;
+	if(negativeEta && region == 12) rEta = 31;
+	if(!negativeEta) rEta = 11 + region; // Positive eta portion is offset by 11
+	rgnCollection->push_back(L1CaloRegion((uint16_t) regionData, (unsigned) rEta, (unsigned) rPhi, (int16_t) 0));
       }
     }
   }  
