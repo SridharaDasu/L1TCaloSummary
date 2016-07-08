@@ -106,6 +106,6 @@ bool UCTGeometryExtended::isEdgeTower(UCTTowerIndex a) {
   int eta = a.first;
   int etaMin = -MaxUCTRegionsEta;
   int etaMax = MaxUCTRegionsEta;
-  if(eta == -etaMin || a.first == etaMax) return true;
+  if(eta == etaMin || eta == etaMax) return true;
   return false;
 }

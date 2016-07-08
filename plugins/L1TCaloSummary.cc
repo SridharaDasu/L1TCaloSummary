@@ -387,7 +387,6 @@ L1TCaloSummary::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   pt = ((double) met->et()) * caloScaleFactor;
   eta = g.getUCTTowerEta(met->iEta());
   phi = g.getUCTTowerPhi(met->iPhi());
-  std::cout<<"MET from L1TCalosummary :"<<pt<<" total et:  "<<et<<std::endl;
   metCands->push_back(L1EtMissParticle(math::PtEtaPhiMLorentzVector(pt, eta, phi, mass), L1EtMissParticle::kMET, totET));
 
   
