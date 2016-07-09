@@ -50,5 +50,8 @@ uct2016EmulatorDigis = cms.EDProducer('L1TCaloSummary',
                                       tauIsolationFactor = cms.double(0.3),
                                       eGammaSeed = cms.uint32(5),
                                       eGammaIsolationFactor = cms.double(0.3),
+                                      activityFraction = cms.double(0.125),
+                                      ecalActivityFraction = cms.double(0.25),
+                                      miscActivityFraction = cms.double(0.25),
                                       verbose = cms.bool(False)
                                       )

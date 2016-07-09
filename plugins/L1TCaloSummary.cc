@@ -32,6 +32,8 @@
 #include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
 #include "DataFormats/HcalDigi/interface/HcalDigiCollections.h"
 
+#include "L1Trigger/L1TCaloLayer1/src/UCTParameters.hh"
+
 #include "L1Trigger/L1TCaloLayer1/src/UCTLayer1.hh"
 #include "L1Trigger/L1TCaloLayer1/src/UCTCrate.hh"
 #include "L1Trigger/L1TCaloLayer1/src/UCTCard.hh"
@@ -115,6 +117,7 @@ private:
 
   bool verbose;
 
+  UCTParameters uctParameters;
   UCTLayer1 *layer1;
   UCTSummaryCard *summaryCard;
   
@@ -151,7 +154,10 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   tauIsolationFactor(iConfig.getParameter<double>("tauIsolationFactor")),
   eGammaSeed(iConfig.getParameter<unsigned int>("eGammaSeed")),
   eGammaIsolationFactor(iConfig.getParameter<double>("eGammaIsolationFactor")),
-  verbose(iConfig.getParameter<bool>("verbose")) 
+  verbose(iConfig.getParameter<bool>("verbose")),
+  uctParameters(iConfig.getParameter<double>("activityFraction"), 
+		iConfig.getParameter<double>("ecalActivityFraction"), 
+		iConfig.getParameter<double>("miscActivityFraction"))
 {
   std::vector<double> pumLUTData;
   char pumLUTString[10];
@@ -178,7 +184,7 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   produces< L1JetParticleCollection >( "IsoTau" ) ;
   produces< L1EtMissParticleCollection >( "MET" ) ;
   produces< L1EtMissParticleCollection >( "MHT" ) ;
-  layer1 = new UCTLayer1;
+  layer1 = new UCTLayer1(&uctParameters);
   summaryCard = new UCTSummaryCard(layer1, &pumLUT, jetSeed, tauSeed, tauIsolationFactor, eGammaSeed, eGammaIsolationFactor);
   vector<UCTCrate*> crates = layer1->getCrates();
   for(uint32_t crt = 0; crt < crates.size(); crt++) {
