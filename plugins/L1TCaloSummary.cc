@@ -95,7 +95,7 @@ private:
   std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
   std::vector< std::vector< uint32_t > > hfLUT;
 
-  std::vector< std::vector< uint32_t > > pumLUT;
+  std::vector< std::vector< std::vector < uint32_t > > > pumLUT;
 
   std::vector< UCTTower* > twrList;
 
@@ -107,8 +107,11 @@ private:
 
   double caloScaleFactor;
 
+  uint32_t jetSeed;
   uint32_t tauSeed;
   float tauIsolationFactor;
+  uint32_t eGammaSeed;
+  double eGammaIsolationFactor;
 
   bool verbose;
 
@@ -136,24 +139,34 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hfLUT(12, std::vector < uint32_t >(256)),
-  pumLUT(18, std::vector < uint32_t >(22)),
+  pumLUT(18, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(13))),
   useLSB(iConfig.getParameter<bool>("useLSB")),
   useCalib(iConfig.getParameter<bool>("useCalib")),
   useECALLUT(iConfig.getParameter<bool>("useECALLUT")),
   useHCALLUT(iConfig.getParameter<bool>("useHCALLUT")),
   useHFLUT(iConfig.getParameter<bool>("useHFLUT")),
   caloScaleFactor(iConfig.getParameter<double>("caloScaleFactor")),
+  jetSeed(iConfig.getParameter<unsigned int>("jetSeed")),
   tauSeed(iConfig.getParameter<unsigned int>("tauSeed")),
   tauIsolationFactor(iConfig.getParameter<double>("tauIsolationFactor")),
+  eGammaSeed(iConfig.getParameter<unsigned int>("eGammaSeed")),
+  eGammaIsolationFactor(iConfig.getParameter<double>("eGammaIsolationFactor")),
   verbose(iConfig.getParameter<bool>("verbose")) 
 {
   std::vector<double> pumLUTData;
   char pumLUTString[10];
   for(uint32_t pumBin = 0; pumBin < 18; pumBin++) {
-    sprintf(pumLUTString, "pumLUT%2.2d", pumBin);
-    pumLUTData = iConfig.getParameter<std::vector < double > >(pumLUTString);
-    for(uint32_t iEta = 0; iEta < pumLUTData.size(); iEta++) {
-      pumLUT[pumBin][iEta] = (uint32_t) round(pumLUTData[iEta] / caloScaleFactor);
+    for(uint32_t side = 0; side < 2; side++) {
+      if(side == 0) sprintf(pumLUTString, "pumLUT%2.2dp", pumBin);
+      else sprintf(pumLUTString, "pumLUT%2.2dn", pumBin);
+      pumLUTData = iConfig.getParameter<std::vector < double > >(pumLUTString);
+      for(uint32_t iEta = 0; iEta < std::max((uint32_t) pumLUTData.size(), MaxUCTRegionsEta); iEta++) {
+	pumLUT[pumBin][side][iEta] = (uint32_t) round(pumLUTData[iEta] / caloScaleFactor);
+      }
+      if(pumLUTData.size() != (MaxUCTRegionsEta))
+	std::cerr << "PUM LUT Data size integrity check failed; Expected size = " << MaxUCTRegionsEta
+		  << "; Provided size = " << pumLUTData.size()
+		  << "; Will use what is provided :(" << std::endl;
     }
   }
   produces< L1CaloRegionCollection >();
@@ -166,9 +179,7 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   produces< L1EtMissParticleCollection >( "MET" ) ;
   produces< L1EtMissParticleCollection >( "MHT" ) ;
   layer1 = new UCTLayer1;
-  summaryCard = new UCTSummaryCard(layer1, &pumLUT);
-  summaryCard->setTauSeed(tauSeed);
-  summaryCard->setTauIsolationFactor(tauIsolationFactor);
+  summaryCard = new UCTSummaryCard(layer1, &pumLUT, jetSeed, tauSeed, tauIsolationFactor, eGammaSeed, eGammaIsolationFactor);
   vector<UCTCrate*> crates = layer1->getCrates();
   for(uint32_t crt = 0; crt < crates.size(); crt++) {
     vector<UCTCard*> cards = crates[crt]->getCards();
