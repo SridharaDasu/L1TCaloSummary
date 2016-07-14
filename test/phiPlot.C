@@ -43,6 +43,7 @@ void phiPlot(std::string runNumber = "276282") {
   lg->AddEntry(isoEGammaPhi,"Iso eGamma Phi","lf");
   lg->Draw();
 
-  canvas->SaveAs("PhiPlot.png");
+  fileName = "PhiPlot-" + runNumber + ".png";
+  canvas->SaveAs(fileName.c_str());
 
 }

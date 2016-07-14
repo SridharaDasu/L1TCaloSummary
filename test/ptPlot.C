@@ -43,6 +43,7 @@ void ptPlot(std::string runNumber = "276282") {
   lg->AddEntry(isoEGammaPT,"Iso eGamma PT","lf");
   lg->Draw();
 
-  canvas->SaveAs("PTPlot.png");
+  fileName = "PTPlot-" + runNumber + ".png";
+  canvas->SaveAs(fileName.c_str());
 
 }

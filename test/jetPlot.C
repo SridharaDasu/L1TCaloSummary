@@ -27,6 +27,7 @@ void jetPlot(std::string runNumber = "276282") {
   lg->AddEntry(fJetPT,"Forward Jet PT","lf");
   lg->Draw();
 
-  canvas->SaveAs("JetPlot.png");
+  fileName = "JetPlot-" + runNumber + ".png";
+  canvas->SaveAs(fileName.c_str());
 
 }

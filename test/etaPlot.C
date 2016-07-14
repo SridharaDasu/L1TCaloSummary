@@ -44,6 +44,7 @@ void etaPlot(std::string runNumber = "276282") {
   lg->AddEntry(isoEGammaEta,"Iso eGamma Eta","lf");
   lg->Draw();
 
-  canvas->SaveAs("EtaPlot.png");
+  fileName = "EtaPlot-" + runNumber + ".png";
+  canvas->SaveAs(fileName.c_str());
 
 }
