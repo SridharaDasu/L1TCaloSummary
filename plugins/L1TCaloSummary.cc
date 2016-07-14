@@ -97,6 +97,8 @@ private:
   std::vector< std::vector< std::vector < uint32_t > > > hcalLUT;
   std::vector< std::vector< uint32_t > > hfLUT;
 
+  uint32_t nPumBins;
+
   std::vector< std::vector< std::vector < uint32_t > > > pumLUT;
 
   std::vector< UCTTower* > twrList;
@@ -142,7 +144,8 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
   ecalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hcalLUT(28, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(256))),
   hfLUT(12, std::vector < uint32_t >(256)),
-  pumLUT(18, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(13))),
+  nPumBins(iConfig.getParameter<unsigned int>("nPumBins")),
+  pumLUT(nPumBins, std::vector< std::vector<uint32_t> >(2, std::vector<uint32_t>(13))),
   useLSB(iConfig.getParameter<bool>("useLSB")),
   useCalib(iConfig.getParameter<bool>("useCalib")),
   useECALLUT(iConfig.getParameter<bool>("useECALLUT")),
@@ -161,7 +164,7 @@ L1TCaloSummary::L1TCaloSummary(const edm::ParameterSet& iConfig) :
 {
   std::vector<double> pumLUTData;
   char pumLUTString[10];
-  for(uint32_t pumBin = 0; pumBin < 18; pumBin++) {
+  for(uint32_t pumBin = 0; pumBin < nPumBins; pumBin++) {
     for(uint32_t side = 0; side < 2; side++) {
       if(side == 0) sprintf(pumLUTString, "pumLUT%2.2dp", pumBin);
       else sprintf(pumLUTString, "pumLUT%2.2dn", pumBin);
