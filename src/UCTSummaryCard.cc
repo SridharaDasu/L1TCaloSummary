@@ -66,8 +66,8 @@ bool UCTSummaryCard::process() {
       if(et > 0) pumLevel++;
     }
   }
-  pumBin = floor(pumLevel/22);
-  if(pumLevel > 17) pumBin = 17; // Max PUM value
+  pumBin = floor(pumLevel/14); // Using only barrel+endcap to estimate pumBin
+  if(pumBin > 17) pumBin = 17; // Max PUM value
   // We walk the eta-phi plane looping over all regions.
   // to make global objects like TotalET, HT, MET, MHT
   // subtracting pileup along the way
