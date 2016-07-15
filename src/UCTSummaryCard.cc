@@ -53,12 +53,12 @@ bool UCTSummaryCard::process() {
   int sumEy = 0;
   int sumHx = 0;
   int sumHy = 0;
-  int etaMin = -NRegionsInCard;
-  int etaMax = NRegionsInCard;
+  int etaMin = -g.getNRegions(); // Process all regions
+  int etaMax = g.getNRegions();
   // Determine pumLevel using only the central regions
   pumLevel = 0;
-  for(int iEta = etaMin; iEta <= etaMax; iEta++) { // Note that region eta ranges from -7 to +7
-    if(iEta == 0) continue;                        // and, eta == 0 is illegal
+  for(int iEta = etaMin; iEta <= etaMax; iEta++) {
+    if(iEta == 0) continue;                       // Note that eta == 0 is illegal 
     for(uint32_t iPhi = 0; iPhi < MaxUCTRegionsPhi; iPhi++) { // Note that phi ranges from 0 to 17
       UCTRegionIndex regionIndex(iEta, iPhi);
       const UCTRegion* uctRegion = uctLayer1->getRegion(regionIndex);
@@ -66,16 +66,16 @@ bool UCTSummaryCard::process() {
       if(et > 0) pumLevel++;
     }
   }
-  pumBin = floor(pumLevel/14); // Using only barrel+endcap to estimate pumBin
-  if(pumBin > 17) pumBin = 17; // Max PUM value
+  uint32_t totalRegionCount = 2 * etaMax * MaxUCTRegionsPhi;
+  uint32_t pumBinSize = totalRegionCount / pumLUT->size();
+  pumBin = floor(pumLevel/pumBinSize);
+  if(pumBin >= pumLUT->size()) pumBin = pumLUT->size() - 1; // Max index
   // We walk the eta-phi plane looping over all regions.
   // to make global objects like TotalET, HT, MET, MHT
   // subtracting pileup along the way
   // For compact objects we use processRegion(regionIndex)
   uint32_t pileup = 0;
   uint32_t et = 0;
-  etaMin = -g.getNRegions(); // Process all regions
-  etaMax = g.getNRegions();
   for(uint32_t side = 0; side < 2; side++) {
     bool negativeSide = true;
     if(side == 1) negativeSide = false;
