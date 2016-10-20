@@ -32,7 +32,8 @@ using std::vector;
 #EG Iso: 8 highest, (et, ieta, iphi)
 #Tau nonIso: 8 highest, (et, ieta, iphi)
 #Tau Iso: 8 highest, (et, ieta, iphi)
-#Jets: 8 highest, (et, ieta, iphi)
+#Jets Central: 8 highest, (et, ieta, iphi)
+#Jets Highest: 8 highest, (et, ieta, iphi)
 #MET (value, phi)
 #ET (value, phi)
 #MHT (value, phi)
@@ -61,7 +62,8 @@ L1TPatternGenerator::L1TPatternGenerator( const ParameterSet & cfg ) :
     fout<<"#EG Iso: 8 highest"<<endl;
     fout<<"#Tau nonIso: 8 highest"<<endl;
     fout<<"#Tau Iso: 8 highest"<<endl;
-    fout<<"#Jets: 8 highest"<<endl;
+    fout<<"#Jets Central: 8 highest"<<endl;
+    fout<<"#Jets Highest: 8 highest"<<endl;
     fout<<"#MET "<<endl;
     fout<<"#ET "<<endl;
     fout<<"#MHT "<<endl;
