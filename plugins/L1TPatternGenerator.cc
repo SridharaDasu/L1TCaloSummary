@@ -38,6 +38,7 @@ using std::vector;
 #ET (value, phi)
 #MHT (value, phi)
 #HT (value, phi)
+#PUMBin, pileup
  */
 
 L1TPatternGenerator::L1TPatternGenerator( const ParameterSet & cfg ) :
@@ -332,6 +333,8 @@ void L1TPatternGenerator::analyze( const Event& evt, const EventSetup& es )
       i++; if(i==1)break;
     }
   }
+  fout<<endl;
+  fout<<"00000000 ";
   fout<<endl;
   fout<<endl;
 

@@ -206,15 +206,15 @@ class L1TPatternGenerator : public edm::EDAnalyzer {
   int convertGenPhi(double inputPhi){
     double posPhi[36];
     for(int n = 0; n < 36; n++)
-      posPhi[n] = (0.087) * n + 0.0435;
+      posPhi[n] = (0.087266) * n + 0.087266;
     double negPhi[36];
     for(int n = 0; n < 36; n++)
-      negPhi[n] = -3.14159 + 0.087 * n - 0.0435;
+      negPhi[n] = -3.14159 + 0.0872664 * n + 0.0872664 ;
 
     //1 to 36 is 0 to pi
     if( 3.1416 > inputPhi && inputPhi >= 0){
 
-      for(int n = 1; n < 36; n++){
+      for(int n = 1; n < 37; n++){
 	//std::cout<<"inputPhi "<<inputPhi<< " posPhi[n-1] "<< posPhi[n-1] << " n "<<n<<std::endl;
 	if(inputPhi <= posPhi[n-1]){
 	  int tpgPhi = n;
@@ -225,7 +225,7 @@ class L1TPatternGenerator : public edm::EDAnalyzer {
 
     //37 to 72 is -pi to 0
     else if(-3.1416 < inputPhi && inputPhi < 0){
-      for(int n = 1; n < 36; n++)
+      for(int n = 1; n < 37; n++)
 	if(inputPhi < negPhi[n-1]){
 	  int tpgPhi = n + 36;
 	  return tpgPhi;
