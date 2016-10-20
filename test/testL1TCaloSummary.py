@@ -1,7 +1,8 @@
 import os
 import FWCore.ParameterSet.Config as cms
+from Configuration.StandardSequences.Eras import eras
 
-process = cms.Process("L1TCaloSummaryTest")
+process = cms.Process("L1TCaloSummaryTest", eras.Run2_2016)
 
 import EventFilter.L1TXRawToDigi.util as util
 
@@ -51,24 +52,6 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data', '')
 process.load('L1Trigger.L1TCalorimeter.caloStage2Params_2016_v2_1_cfi')
 # To get CaloTPGTranscoder
 process.load('SimCalorimetry.HcalTrigPrimProducers.hcaltpdigi_cff')
-
-process.HcalTPGCoderULUT.LUTGenerationMode = cms.bool(False)
-
-process.es_pool = cms.ESSource("PoolDBESSource",
-     process.CondDBSetup,
-     timetype = cms.string('runnumber'),
-     toGet = cms.VPSet(
-         cms.PSet(record = cms.string("HcalLutMetadataRcd"),
-             tag = cms.string("HcalLutMetadata_HFTP_1x1")
-             ),
-         cms.PSet(record = cms.string("HcalElectronicsMapRcd"),
-             tag = cms.string("HcalElectronicsMap_HFTP_1x1")
-             )
-         ),
-     connect = cms.string('frontier://FrontierProd/CMS_CONDITIONS'),
-     authenticationMethod = cms.untracked.uint32(0)
-     )
-process.es_prefer_es_pool = cms.ESPrefer( "PoolDBESSource", "es_pool" )
 
 process.load('EventFilter.L1TXRawToDigi.caloLayer1Stage2Digis_cfi')
 

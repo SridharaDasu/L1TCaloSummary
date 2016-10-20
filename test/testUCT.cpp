@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
 
   UCTLayer1 uctLayer1;
 
-  std::vector< std::vector< uint32_t > > l(18, std::vector< uint32_t > (22));
+  std::vector< std::vector< std::vector< uint32_t > > > l(18, std::vector< std::vector< uint32_t > > (2, std::vector< uint32_t > (22)));
 
   UCTSummaryCard uctLayer2(&uctLayer1, &l);
 
