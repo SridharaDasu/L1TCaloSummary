@@ -366,11 +366,19 @@ void L1TPatternGenerator::analyze( const Event& evt, const EventSetup& es )
   }
 
   for(int j = 17; j> -1; j--){
-    fin<<"0000 0000 0000 0000 0000 0000 0000 ";
-    for(auto region : allRegions[j]){
-      fin<<std::hex<<setfill('0') << setw(4)<<region.rctRaw<<" ";
+    //fin<<"0000 0000 0000 0000 0000 0000 0000 ";
+    if((allRegions[j]).size()<26){
+      std::cout<<"Error nRegions to small :( exiting "<<std::endl;
+      exit(0);
     }
-    fin<<"0000 0000 0000 0000 0000 0000 0000 ";
+    fin<<std::hex<<setfill('0') << setw(4)<<allRegions[j].at(25).rctRaw<<" ";
+    fin<<std::hex<<setfill('0') << setw(4)<<allRegions[j].at(24).rctRaw<<" ";
+    for(uint32_t k = 0; k < allRegions[j].size()-2; k++){
+      //for(auto region : allRegions[j]){
+      fin<<std::hex<<setfill('0') << setw(4)<<allRegions[j].at(k).rctRaw<<" ";
+	//}
+    }
+    //fin<<"0000 0000 0000 0000 0000 0000 0000 ";
     fin<<std::endl;
   }
   fin<<std::endl;

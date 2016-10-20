@@ -120,7 +120,7 @@ class L1TPatternGenerator : public edm::EDAnalyzer {
 
   };
 
-  static bool compareByRCTEta (region_p_type &i,region_p_type &j) { return(i.rctEta>j.rctEta); };
+  static bool compareByRCTEta (region_p_type &i,region_p_type &j) { return(i.rctEta<j.rctEta); };
 
  private:
   // ----------member data ---------------------------
